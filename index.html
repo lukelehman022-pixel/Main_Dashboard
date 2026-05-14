@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Life Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f4f0; --bg3: #eeecea;
+    --text: #1a1a18; --text2: #6b6a66; --text3: #9b9a96;
+    --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
+    --radius-md: 8px; --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a; --bg2: #252523; --bg3: #2e2e2c;
+      --text: #f0ede8; --text2: #a09e9a; --text3: #6b6a66;
+      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.15);
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; padding: 1.5rem; }
+  .shell { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 20px; font-weight: 500; margin-bottom: 1.25rem; }
+  .nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .nav button { font-size: 13px; padding: 6px 14px; border-radius: var(--radius-md); border: 0.5px solid var(--border2); background: transparent; color: var(--text2); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .nav button.active { background: var(--bg); color: var(--text); font-weight: 500; }
+  .nav button:hover:not(.active) { background: var(--bg2); }
+  .tab { display: none; } .tab.active { display: block; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 12px; }
+  @media(max-width:600px){ .grid4{grid-template-columns:1fr 1fr} .grid2,.grid3{grid-template-columns:1fr} }
+  .metric { background: var(--bg2); border-radius: var(--radius-md); padding: 1rem; }
+  .metric .label { font-size: 11px; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .metric .value { font-size: 22px; font-weight: 500; }
+  .metric .sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+  .up { color: #1D9E75; } .down { color: #D85A30; font-size:12px; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 12px; }
+  .card h3 { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 12px; }
+  .chart-wrap { position: relative; width: 100%; }
+  .row-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .row-item:last-child { border-bottom: none; }
+  .row-item .rname { flex: 1; } .row-item .rval { color: var(--text2); }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .badge.green { background:#EAF3DE; color:#3B6D11; } .badge.amber { background:#FAEEDA; color:#854F0B; }
+  .badge.red { background:#FCEBEB; color:#A32D2D; } .badge.blue { background:#E6F1FB; color:#185FA5; }
+  .habit-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+  .habit-row:last-child { border-bottom: none; }
+  .habit-name { flex: 1; font-size: 13px; }
+  .dots { display: flex; gap: 4px; }
+  .dot { width: 18px; height: 18px; border-radius: 4px; }
+  .dot.done { background: #1D9E75; } .dot.miss { background: var(--bg2); border: 0.5px solid var(--border2); }
+  .progress-bar { height: 6px; background: var(--bg2); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; border-radius: 3px; }
+  .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .task-item:last-child { border-bottom: none; }
+  .task-check { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--border2); flex-shrink: 0; margin-top: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .task-check.checked { background: #1D9E75; border-color: #1D9E75; }
+  .task-check.checked::after { content: '✓'; color: white; font-size: 10px; }
+  .task-text { flex: 1; } .task-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; font-size: 12px; color: var(--text2); }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .legend-sq { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .note-item { padding: 10px 12px; background: var(--bg2); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; border: 0.5px solid transparent; transition: border 0.15s; }
+  .note-item:hover { border-color: var(--border2); }
+  .note-item h4 { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .note-item p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .cal-day { text-align: center; padding: 6px 2px; font-size: 12px; border-radius: var(--radius-md); cursor: pointer; }
+  .cal-day.header { color: var(--text2); font-weight: 500; cursor: default; }
+  .cal-day.today { background: #3266ad; color: white; font-weight: 500; }
+  .cal-day.has-event { position: relative; }
+  .cal-day.has-event::after { content:''; position:absolute; bottom:2px; left:50%; transform:translateX(-50%); width:4px; height:4px; border-radius:50%; background:#1D9E75; }
+  .cal-day.other-month { color: var(--text3); opacity: 0.5; }
+  .event-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+  .event-item:last-child { border-bottom: none; }
+  .event-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .input-row { display: flex; gap: 8px; margin-top: 10px; }
+  .input-row input { flex: 1; font-size: 13px; padding: 6px 10px; border: 0.5px solid var(--border2); border-radius: var(--radius-md); background: var(--bg); color: var(--text); font-family: inherit; outline: none; }
+  .input-row input:focus { border-color: #3266ad; }
+  .input-row button { font-size: 13px; padding: 6px 14px; border-radius: var(--radius-md); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); cursor: pointer; font-family: inherit; }
+  .input-row button:hover { background: var(--bg2); }
+  .add-btn { font-size: 13px; border: none; background: none; color: var(--text2); padding: 6px 0; display: flex; align-items: center; gap: 6px; cursor: pointer; font-family: inherit; }
+  .section-title { font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <h1>Life dashboard</h1>
+  <div class="nav">
+    <button class="active" onclick="switchTab('overview',this)"><i class="ti ti-layout-dashboard"></i> Overview</button>
+    <button onclick="switchTab('tasks',this)"><i class="ti ti-checklist"></i> Tasks & Goals</button>
+    <button onclick="switchTab('health',this)"><i class="ti ti-heart-rate-monitor"></i> Health</button>
+    <button onclick="switchTab('finance',this)"><i class="ti ti-coin"></i> Finance</button>
+    <button onclick="switchTab('habits',this)"><i class="ti ti-repeat"></i> Habits</button>
+    <button onclick="switchTab('notes',this)"><i class="ti ti-notes"></i> Notes</button>
+    <button onclick="switchTab('calendar',this)"><i class="ti ti-calendar"></i> Calendar</button>
+  </div>
+
+  <div class="tab active" id="tab-overview">
+    <div class="grid4">
+      <div class="metric"><div class="label">Tasks today</div><div class="value" id="ov-tasks">0/5</div><div class="sub">completed</div></div>
+      <div class="metric"><div class="label">Habit streak</div><div class="value">12 days</div><div class="sub up">↑ personal best</div></div>
+      <div class="metric"><div class="label">Month spend</div><div class="value">$2,140</div><div class="sub down">↑ $240 vs budget</div></div>
+      <div class="metric"><div class="label">Sleep avg</div><div class="value">7.2h</div><div class="sub up">↑ 0.4h this week</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>Habit completion — last 7 days</h3><div class="chart-wrap" style="height:180px"><canvas id="habitChart" role="img" aria-label="Bar chart of habit completion">Completion ranged from 4 to 7 per day.</canvas></div></div>
+      <div class="card"><h3>Spending breakdown</h3>
+        <div class="legend">
+          <span><span class="legend-sq" style="background:#3266ad"></span>Housing 38%</span>
+          <span><span class="legend-sq" style="background:#1D9E75"></span>Food 22%</span>
+          <span><span class="legend-sq" style="background:#EF9F27"></span>Transport 14%</span>
+          <span><span class="legend-sq" style="background:#D85A30"></span>Other 26%</span>
+        </div>
+        <div class="chart-wrap" style="height:152px"><canvas id="spendChart" role="img" aria-label="Doughnut of spending">Housing 38%, Food 22%, Transport 14%, Other 26%.</canvas></div>
+      </div>
+    </div>
+    <div class="card"><h3>Today's priorities</h3><div id="ov-task-list"></div></div>
+  </div>
+
+  <div class="tab" id="tab-tasks">
+    <div class="grid3">
+      <div class="metric"><div class="label">Open tasks</div><div class="value" id="open-count">8</div></div>
+      <div class="metric"><div class="label">Completed this week</div><div class="value">14</div></div>
+      <div class="metric"><div class="label">Goals on track</div><div class="value">3/4</div></div>
+    </div>
+    <div class="card"><h3>Tasks</h3><div id="task-list"></div>
+      <div class="input-row"><input type="text" id="task-input" placeholder="Add a task..." onkeydown="if(event.key==='Enter') addTask()" /><button onclick="addTask()"><i class="ti ti-plus"></i> Add</button></div>
+    </div>
+    <div class="card"><h3>Goals</h3><div id="goal-list"></div></div>
+  </div>
+
+  <div class="tab" id="tab-health">
+    <div class="grid4">
+      <div class="metric"><div class="label">Steps today</div><div class="value">8,432</div><div class="sub up">84% of goal</div></div>
+      <div class="metric"><div class="label">Sleep last night</div><div class="value">7.5h</div><div class="sub up">↑ good</div></div>
+      <div class="metric"><div class="label">Active days</div><div class="value">5/7</div><div class="sub">this week</div></div>
+      <div class="metric"><div class="label">Resting HR</div><div class="value">62 bpm</div><div class="sub up">↓ improving</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>Steps — last 14 days</h3><div class="chart-wrap" style="height:200px"><canvas id="stepsChart" role="img" aria-label="Bar chart of steps">Steps ranged from 4,000 to 11,000.</canvas></div></div>
+      <div class="card"><h3>Sleep — last 14 nights</h3><div class="chart-wrap" style="height:200px"><canvas id="sleepChart" role="img" aria-label="Line chart of sleep">Sleep ranged from 5.5 to 8.5 hours.</canvas></div></div>
+    </div>
+    <div class="card"><h3>Weekly log</h3>
+      <div class="row-item"><span class="rname">Mon</span><span class="rval">Run 5.2km · 7.8h sleep</span><span class="badge green">Great</span></div>
+      <div class="row-item"><span class="rname">Tue</span><span class="rval">Strength training · 6.5h sleep</span><span class="badge amber">Okay</span></div>
+      <div class="row-item"><span class="rname">Wed</span><span class="rval">Rest day · 8h sleep</span><span class="badge green">Great</span></div>
+      <div class="row-item"><span class="rname">Thu</span><span class="rval">Yoga 30min · 7.5h sleep</span><span class="badge green">Good</span></div>
+      <div class="row-item"><span class="rname">Fri</span><span class="rval">Run 4km · 6h sleep</span><span class="badge amber">Okay</span></div>
+    </div>
+  </div>
+
+  <div class="tab" id="tab-finance">
+    <div class="grid4">
+      <div class="metric"><div class="label">Net worth</div><div class="value">$48,200</div><div class="sub up">↑ $1,200 MoM</div></div>
+      <div class="metric"><div class="label">Monthly income</div><div class="value">$5,800</div></div>
+      <div class="metric"><div class="label">Monthly spend</div><div class="value">$2,140</div><div class="down">$240 over budget</div></div>
+      <div class="metric"><div class="label">Savings rate</div><div class="value">63%</div><div class="sub up">↑ 5% vs last mo</div></div>
+    </div>
+    <div class="card"><h3>Income vs spending — last 6 months</h3>
+      <div class="legend"><span><span class="legend-sq" style="background:#3266ad"></span>Income</span><span><span class="legend-sq" style="background:#D85A30;opacity:0.7"></span>Spending</span></div>
+      <div class="chart-wrap" style="height:220px"><canvas id="finChart" role="img" aria-label="Grouped bar chart income vs spending">Income higher than spending each month.</canvas></div>
+    </div>
+    <div class="card"><h3>Budget vs actual — this month</h3><div id="budget-rows"></div></div>
+  </div>
+
+  <div class="tab" id="tab-habits">
+    <div class="grid3">
+      <div class="metric"><div class="label">Best streak</div><div class="value">12 days</div></div>
+      <div class="metric"><div class="label">Completion rate</div><div class="value">78%</div><div class="sub">last 30 days</div></div>
+      <div class="metric"><div class="label">Perfect days</div><div class="value">9</div><div class="sub">this month</div></div>
+    </div>
+    <div class="card"><h3>Habit tracker — last 7 days</h3>
+      <div style="display:flex;gap:4px;justify-content:flex-end;margin-bottom:8px;font-size:11px;color:var(--text2)">
+        <span style="width:18px;text-align:center">M</span><span style="width:18px;text-align:center">T</span><span style="width:18px;text-align:center">W</span><span style="width:18px;text-align:center">T</span><span style="width:18px;text-align:center">F</span><span style="width:18px;text-align:center">S</span><span style="width:18px;text-align:center">S</span>
+      </div>
+      <div id="habit-tracker"></div>
+    </div>
+    <div class="card"><h3>Completion heatmap — this month</h3><div class="chart-wrap" style="height:180px"><canvas id="habitHeatChart" role="img" aria-label="Bar chart of daily habit completion percentage">Completion varies from 40% to 100%.</canvas></div></div>
+  </div>
+
+  <div class="tab" id="tab-notes">
+    <div class="grid2">
+      <div>
+        <div class="section-title">Recent notes</div>
+        <div id="note-list"></div>
+        <button class="add-btn" onclick="addNote()"><i class="ti ti-plus"></i> New note</button>
+      </div>
+      <div>
+        <div class="section-title">Note detail</div>
+        <div class="card" id="note-detail" style="min-height:200px"><p style="color:var(--text2);font-size:13px">Select a note to view it.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab" id="tab-calendar">
+    <div class="grid2">
+      <div class="card"><h3>May 2026</h3><div class="cal-grid" id="cal-grid"></div></div>
+      <div class="card"><h3>Upcoming events</h3><div id="event-list"></div></div>
+    </div>
+    <div class="card"><h3>Add event</h3>
+      <div class="input-row">
+        <input type="text" id="event-input" placeholder="Event name..." />
+        <input type="text" id="event-date" placeholder="May 20" style="max-width:100px" />
+        <button onclick="addEvent()"><i class="ti ti-plus"></i> Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+function switchTab(id,btn){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));document.getElementById('tab-'+id).classList.add('active');btn.classList.add('active');}
+let tasks=[{text:'Review Q2 report',done:false,tag:'Work',priority:'high'},{text:'Grocery run',done:false,tag:'Personal',priority:'medium'},{text:'Call dentist',done:true,tag:'Health',priority:'low'},{text:'Pay rent',done:false,tag:'Finance',priority:'high'},{text:'Evening walk 30min',done:false,tag:'Health',priority:'medium'}];
+const goals=[{text:'Run a 5K under 25 min',progress:72,deadline:'Jun 30'},{text:'Save $15,000',progress:54,deadline:'Dec 31'},{text:'Read 20 books',progress:40,deadline:'Dec 31'},{text:'Ship side project v1',progress:88,deadline:'May 31'}];
+function renderTasks(){const done=tasks.filter(t=>t.done).length;document.getElementById('open-count').textContent=tasks.filter(t=>!t.done).length;document.getElementById('ov-tasks').textContent=done+'/'+tasks.length;const html=tasks.map((t,i)=>`<div class="task-item"><div class="task-check ${t.done?'checked':''}" onclick="toggleTask(${i})"></div><div class="task-text"><div style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}">${t.text}</div><div class="task-meta">${t.tag} · ${t.priority} priority</div></div></div>`).join('');document.getElementById('task-list').innerHTML=html;document.getElementById('ov-task-list').innerHTML=tasks.slice(0,4).map((t,i)=>`<div class="task-item"><div class="task-check ${t.done?'checked':''}" onclick="toggleTask(${i})"></div><div class="task-text" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}">${t.text}</div><span class="badge ${t.priority==='high'?'red':t.priority==='medium'?'amber':'blue'}">${t.priority}</span></div>`).join('');}
+function toggleTask(i){tasks[i].done=!tasks[i].done;renderTasks();}
+function addTask(){const inp=document.getElementById('task-input');if(!inp.value.trim())return;tasks.unshift({text:inp.value.trim(),done:false,tag:'Personal',priority:'medium'});inp.value='';renderTasks();}
+function renderGoals(){document.getElementById('goal-list').innerHTML=goals.map(g=>`<div style="padding:10px 0;border-bottom:0.5px solid var(--border)"><div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px"><span>${g.text}</span><span style="color:var(--text2)">${g.progress}% · ${g.deadline}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${g.progress}%;background:${g.progress>=75?'#1D9E75':g.progress>=40?'#EF9F27':'#D85A30'}"></div></div></div>`).join('');}
+const budgetData=[{cat:'Housing',budget:1600,actual:1600},{cat:'Food',budget:500,actual:620},{cat:'Transport',budget:250,actual:310},{cat:'Entertainment',budget:200,actual:180},{cat:'Health',budget:150,actual:140},{cat:'Misc',budget:200,actual:290}];
+function renderBudget(){document.getElementById('budget-rows').innerHTML=budgetData.map(b=>{const over=b.actual>b.budget;return`<div style="padding:10px 0;border-bottom:0.5px solid var(--border)"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>${b.cat}</span><span style="color:${over?'#D85A30':'#1D9E75'}">${over?'+':''}$${b.actual-b.budget} <span style="color:var(--text2)">$${b.actual} / $${b.budget}</span></span></div><div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100,Math.round(b.actual/b.budget*100))}%;background:${over?'#D85A30':'#1D9E75'}"></div></div></div>`;}).join('');}
+const habits=[{name:'Morning workout',days:[1,1,1,0,1,1,0]},{name:'Read 30 min',days:[1,1,0,1,1,1,1]},{name:'Meditate',days:[1,0,1,1,0,1,1]},{name:'No alcohol',days:[1,1,1,1,1,1,1]},{name:'Cold shower',days:[0,1,1,0,1,0,1]},{name:'Journal',days:[1,1,0,0,1,1,0]}];
+function renderHabits(){document.getElementById('habit-tracker').innerHTML=habits.map(h=>`<div class="habit-row"><span class="habit-name">${h.name}</span><div class="dots">${h.days.map(d=>`<div class="dot ${d?'done':'miss'}"></div>`).join('')}</div><span style="font-size:12px;color:var(--text2);margin-left:8px;min-width:28px">${Math.round(h.days.filter(Boolean).length/7*100)}%</span></div>`).join('');}
+let notes=[{title:'Q3 planning ideas',body:'Focus on three key areas: shipping the redesign, growing the audience, and improving onboarding. Each needs a clear owner and weekly check-in.',date:'May 13'},{title:'Book recs from Sam',body:'Four Thousand Weeks, Thinking Fast and Slow, The Creative Act, A Pattern Language.',date:'May 10'},{title:'Morning routine experiment',body:'Try waking at 6am for 2 weeks. No phone for first 30 min. Coffee + journal + stretch before email.',date:'May 7'}];
+function renderNotes(){document.getElementById('note-list').innerHTML=notes.map((n,i)=>`<div class="note-item" onclick="viewNote(${i})"><h4>${n.title}</h4><p>${n.body.substring(0,80)}${n.body.length>80?'...':''}</p></div>`).join('');}
+function viewNote(i){document.getElementById('note-detail').innerHTML=`<h4 style="font-size:14px;font-weight:500;margin-bottom:8px">${notes[i].title}</h4><p style="font-size:13px;color:var(--text2);line-height:1.7">${notes[i].body}</p><p style="font-size:11px;color:var(--text2);margin-top:12px">${notes[i].date}</p>`;}
+function addNote(){notes.unshift({title:'New note',body:'Start writing...',date:'Today'});renderNotes();viewNote(0);}
+let events=[{name:'Team standup',date:'May 14',color:'#3266ad'},{name:'Dentist appointment',date:'May 16',color:'#D85A30'},{name:'Coffee with Jordan',date:'May 19',color:'#1D9E75'},{name:'Flight to Portland',date:'May 22',color:'#EF9F27'},{name:'Book club',date:'May 28',color:'#7F77DD'}];
+function renderCalendar(){const days=['Su','Mo','Tu','We','Th','Fr','Sa'];const eventDays=[14,16,19,22,28];let html=days.map(d=>`<div class="cal-day header">${d}</div>`).join('');for(let i=0;i<3;i++)html+=`<div class="cal-day other-month">${28+i}</div>`;for(let d=1;d<=31;d++){const isToday=d===14,hasEv=eventDays.includes(d);html+=`<div class="cal-day ${isToday?'today':''} ${hasEv&&!isToday?'has-event':''}">${d}</div>`;}document.getElementById('cal-grid').innerHTML=html;document.getElementById('event-list').innerHTML=events.map(e=>`<div class="event-item"><div class="event-dot" style="background:${e.color}"></div><div><div style="font-size:13px">${e.name}</div><div style="font-size:11px;color:var(--text2)">${e.date}</div></div></div>`).join('');}
+function addEvent(){const name=document.getElementById('event-input').value.trim();const date=document.getElementById('event-date').value.trim();if(!name)return;events.unshift({name,date:date||'TBD',color:'#7F77DD'});document.getElementById('event-input').value='';document.getElementById('event-date').value='';renderCalendar();}
+renderTasks();renderGoals();renderBudget();renderHabits();renderNotes();renderCalendar();
+const isDark=matchMedia('(prefers-color-scheme: dark)').matches;
+const tC=isDark?'#a09e9a':'#6b6a66',gC=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
+const cd={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}};
+new Chart(document.getElementById('habitChart'),{type:'bar',data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{data:[5,4,6,6,7,5,4],backgroundColor:'#3266ad',borderRadius:4}]},options:{...cd,scales:{y:{min:0,max:7,ticks:{color:tC,stepSize:1},grid:{color:gC}},x:{ticks:{color:tC},grid:{display:false}}}}});
+new Chart(document.getElementById('spendChart'),{type:'doughnut',data:{datasets:[{data:[38,22,14,26],backgroundColor:['#3266ad','#1D9E75','#EF9F27','#D85A30'],borderWidth:0}]},options:{...cd,cutout:'65%'}});
+const stepData=[7200,9800,4200,11000,8800,6500,7400,9200,10100,5600,8432,7800,9400,8432];
+new Chart(document.getElementById('stepsChart'),{type:'bar',data:{labels:stepData.map((_,i)=>i+1),datasets:[{data:stepData,backgroundColor:stepData.map(v=>v>=10000?'#1D9E75':'#3266ad'),borderRadius:3}]},options:{...cd,scales:{y:{ticks:{color:tC},grid:{color:gC}},x:{ticks:{color:tC},grid:{display:false}}}}});
+new Chart(document.getElementById('sleepChart'),{type:'line',data:{labels:Array.from({length:14},(_,i)=>i+1),datasets:[{data:[6.5,7.5,8,6,7,7.5,8.5,6.5,7,8,5.5,7,7.5,7.5],borderColor:'#7F77DD',backgroundColor:'rgba(127,119,221,0.08)',tension:0.4,fill:true,pointRadius:3,pointBackgroundColor:'#7F77DD'}]},options:{...cd,scales:{y:{min:4,max:10,ticks:{color:tC,callback:v=>v+'h'},grid:{color:gC}},x:{ticks:{color:tC},grid:{display:false}}}}});
+new Chart(document.getElementById('finChart'),{type:'bar',data:{labels:['Dec','Jan','Feb','Mar','Apr','May'],datasets:[{label:'Income',data:[5800,5800,6100,5800,5800,5800],backgroundColor:'#3266ad',borderRadius:3},{label:'Spending',data:[2800,3100,2600,2900,2140,2140],backgroundColor:'rgba(216,90,48,0.7)',borderRadius:3}]},options:{...cd,scales:{y:{ticks:{color:tC,callback:v=>'$'+v},grid:{color:gC}},x:{ticks:{color:tC},grid:{display:false}}}}});
+const hd=Array.from({length:14},()=>Math.round(40+Math.random()*60));
+new Chart(document.getElementById('habitHeatChart'),{type:'bar',data:{labels:hd.map((_,i)=>'May '+(i+1)),datasets:[{data:hd,backgroundColor:hd.map(v=>v>=80?'#1D9E75':v>=60?'#EF9F27':'#D85A30'),borderRadius:3}]},options:{...cd,scales:{y:{min:0,max:100,ticks:{color:tC,callback:v=>v+'%'},grid:{color:gC}},x:{ticks:{color:tC,maxRotation:45,autoSkip:false},grid:{display:false}}}}});
+</script>
+</body>
+</html>
