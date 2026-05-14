@@ -1,0 +1,472 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.dash { padding: 1rem 0; }
+.nav { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.nav button { font-size: 13px; padding: 6px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.nav button.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); font-weight: 500; }
+.nav button:hover:not(.active) { background: var(--color-background-secondary); }
+.tab { display: none; }
+.tab.active { display: block; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; }
+.metric .label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+.metric .value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.metric .sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; }
+.metric .change.up { color: #1D9E75; font-size: 12px; }
+.metric .change.down { color: #D85A30; font-size: 12px; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 12px; }
+.card h3 { font-size: 14px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 12px; }
+.chart-wrap { position: relative; width: 100%; }
+.row-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+.row-item:last-child { border-bottom: none; }
+.row-item .rname { flex: 1; color: var(--color-text-primary); }
+.row-item .rval { color: var(--color-text-secondary); }
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+.badge.green { background: #EAF3DE; color: #3B6D11; }
+.badge.amber { background: #FAEEDA; color: #854F0B; }
+.badge.red { background: #FCEBEB; color: #A32D2D; }
+.badge.blue { background: #E6F1FB; color: #185FA5; }
+.habit-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.habit-row:last-child { border-bottom: none; }
+.habit-name { flex: 1; font-size: 13px; }
+.dots { display: flex; gap: 4px; }
+.dot { width: 18px; height: 18px; border-radius: 4px; }
+.dot.done { background: #1D9E75; }
+.dot.miss { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); }
+.progress-bar { height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.progress-fill { height: 100%; border-radius: 3px; }
+.task-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+.task-item:last-child { border-bottom: none; }
+.task-check { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--color-border-secondary); flex-shrink: 0; margin-top: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.task-check.checked { background: #1D9E75; border-color: #1D9E75; }
+.task-check.checked::after { content: '✓'; color: white; font-size: 10px; }
+.task-text { flex: 1; }
+.task-meta { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; font-size: 12px; color: var(--color-text-secondary); }
+.legend span { display: flex; align-items: center; gap: 4px; }
+.legend-sq { width: 10px; height: 10px; border-radius: 2px; }
+.add-btn { font-size: 13px; color: var(--color-text-secondary); cursor: pointer; border: none; background: none; padding: 6px 0; display: flex; align-items: center; gap: 6px; }
+.add-btn:hover { color: var(--color-text-primary); }
+.section-title { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.note-item { padding: 10px 12px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); margin-bottom: 8px; cursor: pointer; }
+.note-item h4 { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.note-item p { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-day { text-align: center; padding: 6px 2px; font-size: 12px; border-radius: var(--border-radius-md); cursor: pointer; }
+.cal-day.header { color: var(--color-text-secondary); font-weight: 500; cursor: default; }
+.cal-day.today { background: #3266ad; color: white; font-weight: 500; }
+.cal-day.has-event { position: relative; }
+.cal-day.has-event::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: #1D9E75; }
+.cal-day.other-month { color: var(--color-text-secondary); opacity: 0.4; }
+.event-list { margin-top: 12px; }
+.event-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; align-items: flex-start; }
+.event-item:last-child { border-bottom: none; }
+.event-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.input-row { display: flex; gap: 8px; margin-top: 10px; }
+.input-row input { flex: 1; font-size: 13px; padding: 6px 10px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); }
+.input-row button { font-size: 13px; padding: 6px 14px; }
+</style>
+
+<h2 class="sr-only">Life dashboard with tabs for tasks, health, finance, habits, notes, and calendar</h2>
+
+<div class="dash">
+  <div class="nav">
+    <button class="active" onclick="switchTab('overview')"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Overview</button>
+    <button onclick="switchTab('tasks')"><i class="ti ti-checklist" aria-hidden="true"></i> Tasks & Goals</button>
+    <button onclick="switchTab('health')"><i class="ti ti-heart-rate-monitor" aria-hidden="true"></i> Health</button>
+    <button onclick="switchTab('finance')"><i class="ti ti-coin" aria-hidden="true"></i> Finance</button>
+    <button onclick="switchTab('habits')"><i class="ti ti-repeat" aria-hidden="true"></i> Habits</button>
+    <button onclick="switchTab('notes')"><i class="ti ti-notes" aria-hidden="true"></i> Notes</button>
+    <button onclick="switchTab('calendar')"><i class="ti ti-calendar" aria-hidden="true"></i> Calendar</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="tab active" id="tab-overview">
+    <div class="grid4">
+      <div class="metric"><div class="label">Tasks today</div><div class="value" id="ov-tasks">0/5</div><div class="sub">completed</div></div>
+      <div class="metric"><div class="label">Habits streak</div><div class="value">12 days</div><div class="sub change up">↑ personal best</div></div>
+      <div class="metric"><div class="label">Month spend</div><div class="value">$2,140</div><div class="sub change down">↑ $240 vs budget</div></div>
+      <div class="metric"><div class="label">Sleep avg</div><div class="value">7.2h</div><div class="sub change up">↑ 0.4h this week</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Habit completion — last 7 days</h3>
+        <div class="chart-wrap" style="height:180px"><canvas id="habitChart" role="img" aria-label="Bar chart of daily habit completion over the last 7 days">Habit completion ranged from 4 to 7 habits per day.</canvas></div>
+      </div>
+      <div class="card">
+        <h3>Spending breakdown</h3>
+        <div class="legend">
+          <span><span class="legend-sq" style="background:#3266ad"></span>Housing 38%</span>
+          <span><span class="legend-sq" style="background:#1D9E75"></span>Food 22%</span>
+          <span><span class="legend-sq" style="background:#EF9F27"></span>Transport 14%</span>
+          <span><span class="legend-sq" style="background:#D85A30"></span>Other 26%</span>
+        </div>
+        <div class="chart-wrap" style="height:152px"><canvas id="spendChart" role="img" aria-label="Doughnut chart of spending categories">Housing 38%, Food 22%, Transport 14%, Other 26%.</canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Today's priorities</h3>
+      <div id="ov-task-list"></div>
+    </div>
+  </div>
+
+  <!-- TASKS -->
+  <div class="tab" id="tab-tasks">
+    <div class="grid3">
+      <div class="metric"><div class="label">Open tasks</div><div class="value" id="open-count">8</div></div>
+      <div class="metric"><div class="label">Completed this week</div><div class="value">14</div></div>
+      <div class="metric"><div class="label">Goals on track</div><div class="value">3/4</div></div>
+    </div>
+    <div class="card">
+      <h3>Tasks</h3>
+      <div id="task-list"></div>
+      <div class="input-row">
+        <input type="text" id="task-input" placeholder="Add a task..." onkeydown="if(event.key==='Enter') addTask()" />
+        <button onclick="addTask()"><i class="ti ti-plus" aria-hidden="true"></i> Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Goals</h3>
+      <div id="goal-list"></div>
+    </div>
+  </div>
+
+  <!-- HEALTH -->
+  <div class="tab" id="tab-health">
+    <div class="grid4">
+      <div class="metric"><div class="label">Steps today</div><div class="value">8,432</div><div class="sub change up">84% of goal</div></div>
+      <div class="metric"><div class="label">Sleep last night</div><div class="value">7.5h</div><div class="sub change up">↑ good</div></div>
+      <div class="metric"><div class="label">Active days</div><div class="value">5/7</div><div class="sub">this week</div></div>
+      <div class="metric"><div class="label">Resting HR</div><div class="value">62 bpm</div><div class="sub change up">↓ improving</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Steps — last 14 days</h3>
+        <div class="chart-wrap" style="height:200px"><canvas id="stepsChart" role="img" aria-label="Bar chart of daily steps over 14 days">Steps ranged from around 4,000 to 11,000 daily.</canvas></div>
+      </div>
+      <div class="card">
+        <h3>Sleep — last 14 nights</h3>
+        <div class="chart-wrap" style="height:200px"><canvas id="sleepChart" role="img" aria-label="Line chart of nightly sleep duration over 14 nights">Sleep ranged from 5.5 to 8.5 hours.</canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Weekly log</h3>
+      <div class="row-item"><span class="rname">Mon</span><span class="rval">Run 5.2km · 7.8h sleep</span><span class="badge green">Great</span></div>
+      <div class="row-item"><span class="rname">Tue</span><span class="rval">Strength training · 6.5h sleep</span><span class="badge amber">Okay</span></div>
+      <div class="row-item"><span class="rname">Wed</span><span class="rval">Rest day · 8h sleep</span><span class="badge green">Great</span></div>
+      <div class="row-item"><span class="rname">Thu</span><span class="rval">Yoga 30min · 7.5h sleep</span><span class="badge green">Good</span></div>
+      <div class="row-item"><span class="rname">Fri</span><span class="rval">Run 4km · 6h sleep</span><span class="badge amber">Okay</span></div>
+    </div>
+  </div>
+
+  <!-- FINANCE -->
+  <div class="tab" id="tab-finance">
+    <div class="grid4">
+      <div class="metric"><div class="label">Net worth</div><div class="value">$48,200</div><div class="sub change up">↑ $1,200 MoM</div></div>
+      <div class="metric"><div class="label">Monthly income</div><div class="value">$5,800</div></div>
+      <div class="metric"><div class="label">Monthly spend</div><div class="value">$2,140</div><div class="change down">$240 over budget</div></div>
+      <div class="metric"><div class="label">Savings rate</div><div class="value">63%</div><div class="sub change up">↑ 5% vs last mo</div></div>
+    </div>
+    <div class="card">
+      <h3>Income vs spending — last 6 months</h3>
+      <div class="legend">
+        <span><span class="legend-sq" style="background:#3266ad"></span>Income</span>
+        <span><span class="legend-sq" style="background:#D85A30; opacity:0.7"></span>Spending</span>
+      </div>
+      <div class="chart-wrap" style="height:220px"><canvas id="finChart" role="img" aria-label="Grouped bar chart of income versus spending over 6 months">Income consistently higher than spending across all months.</canvas></div>
+    </div>
+    <div class="card">
+      <h3>Budget vs actual — this month</h3>
+      <div id="budget-rows"></div>
+    </div>
+  </div>
+
+  <!-- HABITS -->
+  <div class="tab" id="tab-habits">
+    <div class="grid3">
+      <div class="metric"><div class="label">Best streak</div><div class="value">12 days</div></div>
+      <div class="metric"><div class="label">Completion rate</div><div class="value">78%</div><div class="sub">last 30 days</div></div>
+      <div class="metric"><div class="label">Perfect days</div><div class="value">9</div><div class="sub">this month</div></div>
+    </div>
+    <div class="card">
+      <h3>Habit tracker — last 7 days</h3>
+      <div style="display:flex; gap:4px; justify-content:flex-end; margin-bottom:8px; font-size:11px; color:var(--color-text-secondary);">
+        <span style="width:18px;text-align:center">M</span>
+        <span style="width:18px;text-align:center">T</span>
+        <span style="width:18px;text-align:center">W</span>
+        <span style="width:18px;text-align:center">T</span>
+        <span style="width:18px;text-align:center">F</span>
+        <span style="width:18px;text-align:center">S</span>
+        <span style="width:18px;text-align:center">S</span>
+      </div>
+      <div id="habit-tracker"></div>
+    </div>
+    <div class="card">
+      <h3>Completion heatmap — this month</h3>
+      <div class="chart-wrap" style="height:180px"><canvas id="habitHeatChart" role="img" aria-label="Bar chart showing daily habit completion percentage this month">Completion percentage varies daily between 40% and 100%.</canvas></div>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="tab" id="tab-notes">
+    <div class="grid2">
+      <div>
+        <div class="section-title">Recent notes</div>
+        <div id="note-list"></div>
+        <button class="add-btn" onclick="addNote()"><i class="ti ti-plus" aria-hidden="true"></i> New note</button>
+      </div>
+      <div>
+        <div class="section-title">Note detail</div>
+        <div class="card" id="note-detail" style="min-height:200px">
+          <p style="color:var(--color-text-secondary);font-size:13px">Select a note to view or edit it.</p>
+        </div>
+        <button class="add-btn" onclick="sendPrompt('Help me expand on this note and add action items')"><i class="ti ti-sparkles" aria-hidden="true"></i> Expand with AI ↗</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="tab" id="tab-calendar">
+    <div class="grid2">
+      <div class="card">
+        <h3 id="cal-title">May 2026</h3>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="card">
+        <h3>Upcoming events</h3>
+        <div class="event-list" id="event-list"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Add event</h3>
+      <div class="input-row">
+        <input type="text" id="event-input" placeholder="Event name..." />
+        <input type="text" id="event-date" placeholder="May 20" style="max-width:100px" />
+        <button onclick="addEvent()"><i class="ti ti-plus" aria-hidden="true"></i> Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+const textColor = isDark ? '#ccc' : '#666';
+const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.closest('button').classList.add('active');
+}
+
+let tasks = [
+  { text: 'Review Q2 report', done: false, tag: 'Work', priority: 'high' },
+  { text: 'Grocery run', done: false, tag: 'Personal', priority: 'medium' },
+  { text: 'Call dentist', done: true, tag: 'Health', priority: 'low' },
+  { text: 'Pay rent', done: false, tag: 'Finance', priority: 'high' },
+  { text: 'Evening walk 30min', done: false, tag: 'Health', priority: 'medium' },
+];
+
+const goals = [
+  { text: 'Run a 5K under 25 min', progress: 72, deadline: 'Jun 30' },
+  { text: 'Save $15,000', progress: 54, deadline: 'Dec 31' },
+  { text: 'Read 20 books', progress: 40, deadline: 'Dec 31' },
+  { text: 'Ship side project v1', progress: 88, deadline: 'May 31' },
+];
+
+function renderTasks() {
+  const list = document.getElementById('task-list');
+  const ovList = document.getElementById('ov-task-list');
+  const done = tasks.filter(t => t.done).length;
+  document.getElementById('open-count').textContent = tasks.filter(t => !t.done).length;
+  document.getElementById('ov-tasks').textContent = done + '/' + tasks.length;
+
+  const html = tasks.map((t, i) => `
+    <div class="task-item">
+      <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleTask(${i})"></div>
+      <div class="task-text">
+        <div style="text-decoration:${t.done ? 'line-through' : 'none'}; color:${t.done ? 'var(--color-text-secondary)' : 'var(--color-text-primary)'}">${t.text}</div>
+        <div class="task-meta">${t.tag} · ${t.priority} priority</div>
+      </div>
+    </div>`).join('');
+
+  list.innerHTML = html;
+  ovList.innerHTML = tasks.slice(0,4).map((t, i) => `
+    <div class="task-item">
+      <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleTask(${i})"></div>
+      <div class="task-text" style="text-decoration:${t.done ? 'line-through' : 'none'}; color:${t.done ? 'var(--color-text-secondary)' : 'var(--color-text-primary)'}">${t.text}</div>
+      <span class="badge ${t.priority === 'high' ? 'red' : t.priority === 'medium' ? 'amber' : 'blue'}">${t.priority}</span>
+    </div>`).join('');
+}
+
+function toggleTask(i) { tasks[i].done = !tasks[i].done; renderTasks(); }
+
+function addTask() {
+  const inp = document.getElementById('task-input');
+  if (!inp.value.trim()) return;
+  tasks.unshift({ text: inp.value.trim(), done: false, tag: 'Personal', priority: 'medium' });
+  inp.value = '';
+  renderTasks();
+}
+
+function renderGoals() {
+  document.getElementById('goal-list').innerHTML = goals.map(g => `
+    <div style="padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary);">
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px;">
+        <span>${g.text}</span>
+        <span style="color:var(--color-text-secondary)">${g.progress}% · ${g.deadline}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${g.progress}%; background:${g.progress >= 75 ? '#1D9E75' : g.progress >= 40 ? '#EF9F27' : '#D85A30'}"></div></div>
+    </div>`).join('');
+}
+
+const budgetData = [
+  { cat: 'Housing', budget: 1600, actual: 1600 },
+  { cat: 'Food', budget: 500, actual: 620 },
+  { cat: 'Transport', budget: 250, actual: 310 },
+  { cat: 'Entertainment', budget: 200, actual: 180 },
+  { cat: 'Health', budget: 150, actual: 140 },
+  { cat: 'Misc', budget: 200, actual: 290 },
+];
+
+function renderBudget() {
+  document.getElementById('budget-rows').innerHTML = budgetData.map(b => {
+    const over = b.actual > b.budget;
+    return `
+    <div style="padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary);">
+      <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;">
+        <span>${b.cat}</span>
+        <span style="color:${over ? '#D85A30' : '#1D9E75'}">${over ? '+' : ''}$${b.actual - b.budget} &nbsp;<span style="color:var(--color-text-secondary)">$${b.actual} / $${b.budget}</span></span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100, Math.round(b.actual/b.budget*100))}%; background:${over ? '#D85A30' : '#1D9E75'}"></div></div>
+    </div>`}).join('');
+}
+
+const habits = [
+  { name: 'Morning workout', days: [1,1,1,0,1,1,0] },
+  { name: 'Read 30 min', days: [1,1,0,1,1,1,1] },
+  { name: 'Meditate', days: [1,0,1,1,0,1,1] },
+  { name: 'No alcohol', days: [1,1,1,1,1,1,1] },
+  { name: 'Cold shower', days: [0,1,1,0,1,0,1] },
+  { name: 'Journal', days: [1,1,0,0,1,1,0] },
+];
+
+function renderHabits() {
+  document.getElementById('habit-tracker').innerHTML = habits.map(h => `
+    <div class="habit-row">
+      <span class="habit-name">${h.name}</span>
+      <div class="dots">${h.days.map(d => `<div class="dot ${d ? 'done' : 'miss'}"></div>`).join('')}</div>
+      <span style="font-size:12px; color:var(--color-text-secondary); margin-left:8px; min-width:28px">${Math.round(h.days.filter(Boolean).length/7*100)}%</span>
+    </div>`).join('');
+}
+
+let notes = [
+  { title: 'Q3 planning ideas', body: 'Focus on three key areas: shipping the redesign, growing the audience, and improving onboarding. Each needs a clear owner and weekly check-in.', date: 'May 13' },
+  { title: 'Book recs from Sam', body: 'Four Thousand Weeks, Thinking Fast and Slow, The Creative Act, A Pattern Language.', date: 'May 10' },
+  { title: 'Morning routine experiment', body: 'Try waking at 6am for 2 weeks. No phone for first 30 min. Coffee + journal + stretch before email.', date: 'May 7' },
+];
+
+function renderNotes() {
+  document.getElementById('note-list').innerHTML = notes.map((n, i) => `
+    <div class="note-item" onclick="viewNote(${i})">
+      <h4>${n.title}</h4>
+      <p>${n.body.substring(0, 80)}${n.body.length > 80 ? '...' : ''}</p>
+    </div>`).join('');
+}
+
+function viewNote(i) {
+  document.getElementById('note-detail').innerHTML = `
+    <h4 style="font-size:14px; font-weight:500; margin-bottom:8px">${notes[i].title}</h4>
+    <p style="font-size:13px; color:var(--color-text-secondary); line-height:1.7">${notes[i].body}</p>
+    <p style="font-size:11px; color:var(--color-text-secondary); margin-top:12px">${notes[i].date}</p>`;
+}
+
+function addNote() {
+  notes.unshift({ title: 'New note', body: 'Start writing...', date: 'Today' });
+  renderNotes();
+  viewNote(0);
+}
+
+let events = [
+  { name: 'Team standup', date: 'May 14', color: '#3266ad' },
+  { name: 'Dentist appointment', date: 'May 16', color: '#D85A30' },
+  { name: 'Coffee with Jordan', date: 'May 19', color: '#1D9E75' },
+  { name: 'Flight to Portland', date: 'May 22', color: '#EF9F27' },
+  { name: 'Book club', date: 'May 28', color: '#7F77DD' },
+];
+
+function renderCalendar() {
+  const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const eventDays = [14,16,19,22,28];
+  let html = days.map(d => `<div class="cal-day header">${d}</div>`).join('');
+  for (let i = 0; i < 3; i++) html += `<div class="cal-day other-month">${28+i}</div>`;
+  for (let d = 1; d <= 31; d++) {
+    const isToday = d === 14;
+    const hasEv = eventDays.includes(d);
+    html += `<div class="cal-day ${isToday ? 'today' : ''} ${hasEv && !isToday ? 'has-event' : ''}">${d}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+  document.getElementById('event-list').innerHTML = events.map(e => `
+    <div class="event-item">
+      <div class="event-dot" style="background:${e.color}"></div>
+      <div><div style="font-size:13px">${e.name}</div><div style="font-size:11px; color:var(--color-text-secondary)">${e.date}</div></div>
+    </div>`).join('');
+}
+
+function addEvent() {
+  const name = document.getElementById('event-input').value.trim();
+  const date = document.getElementById('event-date').value.trim();
+  if (!name) return;
+  events.unshift({ name, date: date || 'TBD', color: '#7F77DD' });
+  document.getElementById('event-input').value = '';
+  document.getElementById('event-date').value = '';
+  renderCalendar();
+}
+
+renderTasks(); renderGoals(); renderBudget(); renderHabits(); renderNotes(); renderCalendar();
+
+const chartDefaults = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
+
+new Chart(document.getElementById('habitChart'), {
+  type: 'bar',
+  data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ data: [5,4,6,6,7,5,4], backgroundColor: '#3266ad', borderRadius: 4 }] },
+  options: { ...chartDefaults, scales: { y: { min:0, max:7, ticks: { color: textColor, stepSize:1 }, grid: { color: gridColor } }, x: { ticks: { color: textColor }, grid: { display: false } } } }
+});
+
+new Chart(document.getElementById('spendChart'), {
+  type: 'doughnut',
+  data: { datasets: [{ data: [38,22,14,26], backgroundColor: ['#3266ad','#1D9E75','#EF9F27','#D85A30'], borderWidth: 0 }] },
+  options: { ...chartDefaults, cutout: '65%' }
+});
+
+const stepData = [7200,9800,4200,11000,8800,6500,7400,9200,10100,5600,8432,7800,9400,8432];
+new Chart(document.getElementById('stepsChart'), {
+  type: 'bar',
+  data: { labels: stepData.map((_,i)=> i+1), datasets: [{ data: stepData, backgroundColor: stepData.map(v => v >= 10000 ? '#1D9E75' : '#3266ad'), borderRadius: 3 }] },
+  options: { ...chartDefaults, scales: { y: { ticks: { color: textColor }, grid: { color: gridColor } }, x: { ticks: { color: textColor }, grid: { display: false } } } }
+});
+
+new Chart(document.getElementById('sleepChart'), {
+  type: 'line',
+  data: {
+    labels: Array.from({length:14},(_,i)=>i+1),
+    datasets: [{
+      data: [6.5,7.5,8,6,7,7.5,8.5,6.5,7,8,5.5,7,7.5,7.5],
+      borderColor: '#7F77DD', backgroundColor: 'rgba(127,119,221,0.08)',
+      tension: 0.4, fill: true, pointRadius: 3, pointBackgroundColor: '#7F77DD',
+      borderDash: []
+    }]
+  },
+  options: { ...chartDefaults, scales: { y: { min:4, max:10, ticks: { color: textColor, callback: v => v+'h' }, grid: { color: gridColor } }, x: { ticks: { color: textColor }, grid: { display: false } } } }
+});
+
+new Chart(document.getElementById('finChart'), {
+  type: 'ba
