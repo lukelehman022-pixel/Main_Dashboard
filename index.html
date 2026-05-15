@@ -1016,6 +1016,31 @@ function formatGoogleDate(start) {
 }
 
 gapi.load("client", initGoogleCalendar);
+ const shell =
+  document.querySelector(".calendar-shell");
+
+const savedHeight =
+  localStorage.getItem(
+    "calendar_height"
+  );
+
+if (savedHeight && shell) {
+  shell.style.height = savedHeight;
+}
+
+if (shell) {
+
+  new ResizeObserver(() => {
+
+    localStorage.setItem(
+      "calendar_height",
+      shell.style.height ||
+      shell.offsetHeight + "px"
+    );
+
+  }).observe(shell);
+
+}
 // ── INIT ─────────────────────────────────────────────────────────
 renderTasks();
 renderGoals();
