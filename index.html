@@ -240,7 +240,14 @@
   <div class="tab" id="tab-calendar">
     <div class="grid2">
       <div class="card"><h3>May 2026</h3><div class="cal-grid" id="cal-grid"></div></div>
-      <div class="card"><h3>Events</h3><div id="event-list"></div></div>
+      
+<div class="card">
+  <h3>Calendar filters</h3>
+  <div id="calendar-filters"></div>
+</div>
+
+<div class="card"><h3>Events</h3><div id="event-list"></div></div>
+
     </div>
     <div class="card">
   <h3>Google Calendar</h3>
@@ -585,10 +592,82 @@ async function initGoogleCalendar() {
 
 function handleAuth() {
   tokenClient.requestAccessToken({
-    prompt: "consent",
+    prompt: "",
   });
 }
+function renderCalendarFilters(calendars) {
 
+  const saved =
+    JSON.parse(
+      localStorage.getItem(
+        "selected_calendars"
+      ) || "{}"
+    );
+
+  const box =
+    document.getElementById(
+      "calendar-filters"
+    );
+
+  if (!box) return;
+
+  box.innerHTML = calendars.map(cal => {
+
+    const checked =
+      saved[cal.id] !== false;
+
+    return `
+      <label
+        style="
+          display:flex;
+          gap:8px;
+          align-items:center;
+          font-size:13px;
+          margin:6px 0;
+        "
+      >
+
+        <input
+          type="checkbox"
+          ${checked ? "checked" : ""}
+
+          onchange="
+            toggleCalendarFilter(
+              '${cal.id}',
+              this.checked
+            )
+          "
+        />
+
+        <span>${cal.summary}</span>
+
+      </label>
+    `;
+
+  }).join("");
+}
+
+function toggleCalendarFilter(
+  calendarId,
+  checked
+) {
+
+  const saved =
+    JSON.parse(
+      localStorage.getItem(
+        "selected_calendars"
+      ) || "{}"
+    );
+
+  saved[calendarId] = checked;
+
+  localStorage.setItem(
+    "selected_calendars",
+    JSON.stringify(saved)
+  );
+
+  loadGoogleEvents();
+}
 async function loadGoogleEvents() {
 
   const now = new Date();
@@ -599,11 +678,30 @@ async function loadGoogleEvents() {
   const calendarList =
     await gapi.client.calendar.calendarList.list();
 
-  const calendars = calendarList.result.items || [];
-  console.log("CALENDARS FOUND:", calendars.map(c => c.summary));
-  let allEvents = [];
+  window.calendars =
+  calendarList.result.items || [];
+
+const calendars = window.calendars;
+
+renderCalendarFilters(calendars);
+
+console.log(
+  "CALENDARS FOUND:",
+  calendars.map(c => c.summary)
+);
+
+let allEvents = [];
 
   for (const cal of calendars) {
+   const saved =
+  JSON.parse(
+    localStorage.getItem(
+      "selected_calendars"
+    ) || "{}"
+  );
+
+if (saved[cal.id] === false)
+  continue;
 
     try {
 
