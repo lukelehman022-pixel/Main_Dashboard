@@ -350,114 +350,55 @@ function switchTab(id,btn){
   document.getElementById('tab-'+id).classList.add('active');
   btn.classList.add('active');
   if(id==='overview'){renderTasks();renderHabits();renderFinance();renderSpendChart();}
+  if(id==='tasks') renderTasks();
+  if(id==='calendar') renderCalendar();
   if(id==='health') renderHealthCharts();
   if(id==='finance'){renderFinance();renderFinChart();}
 }
 
 // ── TASKS ────────────────────────────────────────────────────────
-function isCanvasCalendarEvent(e){
-  const name = `${e.calendarName || ''} ${e.originalCalendarName || ''} ${e.summary || ''}`.toLowerCase();
-  return name.includes('canvas');
-}
-
-function extractFirstUrl(text){
-  const match = String(text || '').match(/https?:\/\/[^\s<>"]+/);
-  return match ? match[0] : '';
-}
-
-function googleEventToCanvasTask(e){
-  const start = e.start || {};
-  const dueRaw = start.dateTime || start.date || '';
-  const url = extractFirstUrl(e.description) || e.htmlLink || '';
-
-  return {
-    source: 'canvas',
-    text: e.summary || 'Canvas assignment',
-    done: false,
-    tag: e.calendarName || 'Canvas',
-    priority: 'medium',
-    due: dueRaw,
-    url
-  };
-}
-
-function getCanvasTasks(){
-  return googleEventsCache
-    .filter(isCanvasCalendarEvent)
-    .map(googleEventToCanvasTask)
-    .sort((a,b)=>new Date(a.due || 0) - new Date(b.due || 0));
-}
-
-function formatCanvasDue(due){
-  if(!due) return 'No due date';
-  const d = new Date(due);
-  if(isNaN(d)) return due;
-  return d.toLocaleString('en-US', {
-    month:'short',
-    day:'numeric',
-    hour: due.includes('T') ? 'numeric' : undefined,
-    minute: due.includes('T') ? '2-digit' : undefined
-  });
-}
-
 function renderTasks(){
-  const canvasTasks = getCanvasTasks();
-  const done = tasks.filter(t=>t.done).length;
-  const open = tasks.filter(t=>!t.done).length + canvasTasks.length;
-  const allTasks = [
-    ...canvasTasks,
-    ...tasks.map((t,i)=>({...t, source:'personal', personalIndex:i}))
-  ];
+  const canvasTasks = getCanvasTasksFromCalendar();
+  const allTasks = [...canvasTasks, ...tasks];
+  const personalDone = tasks.filter(t=>t.done).length;
+  const openTotal = tasks.filter(t=>!t.done).length + canvasTasks.length;
 
-  document.getElementById('open-count').textContent = open;
-  document.getElementById('done-count').textContent = done;
-  document.getElementById('ov-tasks').textContent = done + '/' + (tasks.length + canvasTasks.length);
+  document.getElementById('open-count').textContent = openTotal;
+  document.getElementById('done-count').textContent = personalDone;
+  document.getElementById('ov-tasks').textContent = personalDone + '/' + allTasks.length;
 
   document.getElementById('task-list').innerHTML = allTasks.length ? allTasks.map((t,i)=>{
-    if(t.source === 'canvas'){
-      return `
-        <div class="task-item">
-          <div class="task-check" title="Complete this in Canvas"></div>
-          <div class="task-text">
-            <div>${esc(t.text)}</div>
-            <div class="task-meta">Canvas · ${esc(t.tag)} · Due ${formatCanvasDue(t.due)}</div>
-            ${t.url ? `<div class="task-meta"><a href="${esc(t.url)}" target="_blank" rel="noreferrer">Open Canvas item</a></div>` : ''}
-          </div>
-          <span class="badge blue">Canvas</span>
-        </div>`;
-    }
+    const isCanvas = t.calendarTask === true;
+    const realIndex = i - canvasTasks.length;
+    const dueText = t.due ? ` · Due ${t.due.toLocaleDateString('en-US',{month:'short',day:'numeric'})}` : '';
 
-    const pi = t.personalIndex;
     return `
       <div class="task-item">
-        <div class="task-check ${t.done?'checked':''}" onclick="toggleTask(${pi})"></div>
+        <div class="task-check ${t.done?'checked':''}" ${isCanvas ? '' : `onclick="toggleTask(${realIndex})"`}></div>
         <div class="task-text">
-          <input class="inline-input" value="${esc(t.text)}" onchange="updateTask(${pi},'text',this.value)" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}" />
-          <div class="task-meta">${esc(t.tag)} · ${esc(t.priority)} priority</div>
+          ${isCanvas
+            ? `<div>${esc(t.text)}</div>`
+            : `<input class="inline-input" value="${esc(t.text)}" onchange="updateTask(${realIndex},'text',this.value)" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}" />`
+          }
+          <div class="task-meta">${esc(t.tag || 'Personal')} · ${esc(t.priority || 'medium')} priority${dueText}</div>
         </div>
-        <button class="del-btn" onclick="deleteTask(${pi})">✕</button>
+        ${isCanvas ? '<span class="badge blue">Canvas</span>' : `<button class="del-btn" onclick="deleteTask(${realIndex})">✕</button>`}
       </div>`;
   }).join('') : '<p style="color:var(--text2);font-size:13px">No tasks yet.</p>';
 
-  document.getElementById('ov-task-list').innerHTML = allTasks.slice(0,4).map(t=>{
-    if(t.source === 'canvas'){
-      return `
-        <div class="task-item">
-          <div class="task-check"></div>
-          <div class="task-text">
-            ${esc(t.text)}
-            <div class="task-meta">Canvas · Due ${formatCanvasDue(t.due)}</div>
-          </div>
-          <span class="badge blue">Canvas</span>
-        </div>`;
-    }
+  document.getElementById('ov-task-list').innerHTML = allTasks.slice(0,4).map((t,i)=>{
+    const isCanvas = t.calendarTask === true;
+    const realIndex = i - canvasTasks.length;
+    const dueText = t.due ? ` · Due ${t.due.toLocaleDateString('en-US',{month:'short',day:'numeric'})}` : '';
 
-    const pi = t.personalIndex;
     return `
       <div class="task-item">
-        <div class="task-check ${t.done?'checked':''}" onclick="toggleTask(${pi})"></div>
-        <div class="task-text" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}">${esc(t.text)}</div>
-        <span class="badge ${t.priority==='high'?'red':t.priority==='medium'?'amber':'blue'}">${esc(t.priority)}</span>
+        <div class="task-check ${t.done?'checked':''}" ${isCanvas ? '' : `onclick="toggleTask(${realIndex})"`}></div>
+        <div class="task-text" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}">
+          ${esc(t.text)}
+          <div class="task-meta">${esc(t.tag || 'Personal')}${dueText}</div>
+        </div>
+        <span class="badge ${isCanvas ? 'blue' : (t.priority==='high'?'red':t.priority==='medium'?'amber':'blue')}">${isCanvas ? 'Canvas' : esc(t.priority || 'medium')}</span>
       </div>`;
   }).join('');
 }
@@ -683,10 +624,36 @@ function eventStartDate(e){
   return new Date(raw);
 }
 
+function isCanvasEvent(e){
+  const calendarName = (e.calendarName || e.originalCalendarName || '').toLowerCase();
+  const title = (e.summary || '').toLowerCase();
+
+  return (
+    calendarName.includes('canvas') ||
+    calendarName.includes('assignment') ||
+    calendarName.includes('assignments') ||
+    title.includes('[canvas]')
+  );
+}
+
+function getCanvasTasksFromCalendar(){
+  return googleEventsCache
+    .filter(isCanvasEvent)
+    .map(e => ({
+      text: e.summary || 'Canvas assignment',
+      done: false,
+      tag: 'Canvas',
+      priority: 'medium',
+      due: eventStartDate(e),
+      calendarTask: true
+    }))
+    .sort((a,b)=>(a.due || 0) - (b.due || 0));
+}
+
 function getAllVisibleEvents(){
   const manualEvents = events.map(manualEventToCalendarEvent);
-  const calendarEvents = googleEventsCache.filter(e => !isCanvasCalendarEvent(e));
-  return [...calendarEvents, ...manualEvents].sort((a,b)=>eventStartDate(a)-eventStartDate(b));
+  const googleEventsWithoutCanvas = googleEventsCache.filter(e => !isCanvasEvent(e));
+  return [...googleEventsWithoutCanvas, ...manualEvents].sort((a,b)=>eventStartDate(a)-eventStartDate(b));
 }
 
 function sameDay(a,b){
@@ -1088,6 +1055,7 @@ async function loadGoogleEvents() {
 
   googleEventsCache = allEvents;
   renderCalendar();
+  renderTasks();
 }
 
 function formatGoogleDate(start) {
