@@ -122,8 +122,8 @@
   .week-slot { min-height:46px; border-right:0.5px solid var(--border); border-bottom:0.5px solid var(--border); padding:2px; position:relative; overflow:hidden; }
   .week-slot:nth-child(8n) { border-right:none; }
   .week-event { font-size:11px; line-height:1.25; color:#fff; border-radius:6px; padding:4px 5px; margin-bottom:2px; overflow:hidden; cursor:pointer; }
-  .calendar-filter-row { display:grid; grid-template-columns:22px 16px 92px 1fr; gap:8px; align-items:center; padding:6px 0; border-bottom:0.5px solid var(--border); }
-  .calendar-role-select { font-size:12px; padding:4px 6px; border:0.5px solid var(--border2); border-radius:5px; background:var(--bg); color:var(--text); font-family:inherit; outline:none; }
+  .calendar-filter-row { display:grid; grid-template-columns:22px 16px 96px 1fr; gap:8px; align-items:center; padding:6px 0; border-bottom:0.5px solid var(--border); }
+  .calendar-role-select { width:100%; font-size:12px; padding:4px 6px; border:0.5px solid var(--border2); border-radius:5px; background:var(--bg); color:var(--text); font-family:inherit; outline:none; }
   .calendar-filter-row:last-child { border-bottom:none; }
   .calendar-name-input { width:100%; font-size:13px; padding:4px 6px; border:0.5px solid transparent; border-radius:5px; background:transparent; color:var(--text); font-family:inherit; outline:none; }
   .calendar-name-input:hover, .calendar-name-input:focus { border-color:var(--border2); background:var(--bg2); }
@@ -354,69 +354,86 @@ function switchTab(id,btn){
   if(id==='tasks'){renderTasks();renderGoals();}
   if(id==='health') renderHealthCharts();
   if(id==='finance'){renderFinance();renderFinChart();}
-  if(id==='calendar') renderCalendar();
+  if(id==='habits'){renderHabits();}
+  if(id==='notes'){renderNotes();}
+  if(id==='calendar'){renderCalendar();renderCalendarFilters(googleCalendarsCache);}
 }
 
 // ── TASKS ────────────────────────────────────────────────────────
+function getCalendarTaskId(e){
+  return String(e.id || `${e.calendarId || 'calendar'}-${e.summary || 'task'}-${e.start?.dateTime || e.start?.date || ''}`);
+}
+
 function getCalendarTasks(){
-  const roles = ld("calendar_roles", {});
+  const roles = ld('calendar_roles', {});
+  const completed = ld('calendar_task_done', {});
 
   return googleEventsCache
-    .filter(e => roles[e.calendarId] === "tasks")
-    .map(e => ({
-      text: e.summary || "Calendar task",
-      done: false,
-      tag: e.calendarName || e.originalCalendarName || "Calendar",
-      priority: "medium",
-      due: eventStartDate(e),
-      calendarTask: true,
-      htmlLink: e.htmlLink || null
-    }))
+    .filter(e => roles[e.calendarId] === 'tasks')
+    .map(e => {
+      const id = getCalendarTaskId(e);
+      return {
+        id,
+        text: e.summary || 'Calendar task',
+        done: completed[id] === true,
+        tag: e.calendarName || e.originalCalendarName || 'Calendar',
+        priority: 'medium',
+        due: eventStartDate(e),
+        calendarTask: true,
+        link: e.htmlLink || ''
+      };
+    })
     .sort((a,b)=>a.due-b.due);
+}
+
+function toggleCalendarTask(id){
+  const completed = ld('calendar_task_done', {});
+  completed[id] = !completed[id];
+  sv('calendar_task_done', completed);
+  renderTasks();
 }
 
 function renderTasks(){
   const calendarTasks = getCalendarTasks();
   const allTasks = [...calendarTasks, ...tasks];
-  const done=tasks.filter(t=>t.done).length;
-  const open=tasks.filter(t=>!t.done).length + calendarTasks.length;
+  const donePersonal = tasks.filter(t=>t.done).length;
+  const doneCalendar = calendarTasks.filter(t=>t.done).length;
+  const done = donePersonal + doneCalendar;
 
-  document.getElementById('open-count').textContent=open;
-  document.getElementById('done-count').textContent=done;
-  document.getElementById('ov-tasks').textContent=done+'/'+allTasks.length;
+  document.getElementById('open-count').textContent = allTasks.filter(t=>!t.done).length;
+  document.getElementById('done-count').textContent = done;
+  document.getElementById('ov-tasks').textContent = done + '/' + allTasks.length;
 
-  document.getElementById('task-list').innerHTML=allTasks.length?allTasks.map((t,i)=>{
+  document.getElementById('task-list').innerHTML = allTasks.length ? allTasks.map((t,i)=>{
     const isCalendarTask = t.calendarTask === true;
-    const realIndex = i - calendarTasks.length;
-    const dueText = t.due instanceof Date && !isNaN(t.due)
-      ? ` · Due ${t.due.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`
-      : '';
+    const personalIndex = i - calendarTasks.length;
+    const dueText = t.due && !isNaN(t.due) ? ` · Due ${t.due.toLocaleDateString('en-US',{month:'short',day:'numeric'})}` : '';
+    const checkedAction = isCalendarTask ? `onclick="toggleCalendarTask('${esc(t.id)}')"` : `onclick="toggleTask(${personalIndex})"`;
 
     return `
       <div class="task-item">
-        <div class="task-check ${t.done?'checked':''}" ${isCalendarTask ? '' : `onclick="toggleTask(${realIndex})"`}></div>
+        <div class="task-check ${t.done?'checked':''}" ${checkedAction}></div>
         <div class="task-text">
           ${isCalendarTask
-            ? `<div>${esc(t.text)}</div>`
-            : `<input class="inline-input" value="${esc(t.text)}" onchange="updateTask(${realIndex},'text',this.value)" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}" />`
+            ? `<div style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}">${esc(t.text)}</div>`
+            : `<input class="inline-input" value="${esc(t.text)}" onchange="updateTask(${personalIndex},'text',this.value)" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}" />`
           }
-          <div class="task-meta">${esc(t.tag)} · ${t.priority} priority${dueText}</div>
-          ${isCalendarTask && t.htmlLink ? `<div class="task-meta"><a href="${esc(t.htmlLink)}" target="_blank" rel="noopener">Open calendar item</a></div>` : ''}
+          <div class="task-meta">${esc(t.tag)} · ${t.priority} priority${dueText}${isCalendarTask ? ' · From calendar' : ''}</div>
+          ${isCalendarTask && t.link ? `<div class="task-meta"><a href="${esc(t.link)}" target="_blank" rel="noopener">Open item</a></div>` : ''}
         </div>
-        ${isCalendarTask ? '' : `<button class="del-btn" onclick="deleteTask(${realIndex})">✕</button>`}
+        ${isCalendarTask ? '' : `<button class="del-btn" onclick="deleteTask(${personalIndex})">✕</button>`}
       </div>`;
-  }).join(''):'<p style="color:var(--text2);font-size:13px">No tasks yet.</p>';
+  }).join('') : '<p style="color:var(--text2);font-size:13px">No tasks yet.</p>';
 
-  document.getElementById('ov-task-list').innerHTML=allTasks.slice(0,4).map((t,i)=>{
+  document.getElementById('ov-task-list').innerHTML = allTasks.slice(0,4).map((t,i)=>{
     const isCalendarTask = t.calendarTask === true;
-    const realIndex = i - calendarTasks.length;
-    const dueText = t.due instanceof Date && !isNaN(t.due)
-      ? ` · Due ${t.due.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`
-      : '';
+    const personalIndex = i - calendarTasks.length;
+    const dueText = t.due && !isNaN(t.due) ? ` · Due ${t.due.toLocaleDateString('en-US',{month:'short',day:'numeric'})}` : '';
+    const checkedAction = isCalendarTask ? `onclick="toggleCalendarTask('${esc(t.id)}')"` : `onclick="toggleTask(${personalIndex})"`;
 
     return `
       <div class="task-item">
-        <div class="task-check ${t.done?'checked':''}" ${isCalendarTask ? '' : `onclick="toggleTask(${realIndex})"`}></div>
+        <div class="task-check ${t.done?'checked':''}" ${checkedAction}></div>
         <div class="task-text" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}">
           ${esc(t.text)}
           <div class="task-meta">${esc(t.tag)}${dueText}</div>
@@ -647,14 +664,14 @@ function eventStartDate(e){
   return new Date(raw);
 }
 
+function getCalendarRole(calendarId){
+  const roles = ld('calendar_roles', {});
+  return roles[calendarId] || 'calendar';
+}
+
 function getAllVisibleEvents(){
-  const roles = ld("calendar_roles", {});
   const manualEvents = events.map(manualEventToCalendarEvent);
-
-  const calendarEvents = googleEventsCache.filter(e => {
-    return roles[e.calendarId] !== "tasks";
-  });
-
+  const calendarEvents = googleEventsCache.filter(e => getCalendarRole(e.calendarId) !== 'tasks');
   return [...calendarEvents, ...manualEvents].sort((a,b)=>eventStartDate(a)-eventStartDate(b));
 }
 
@@ -956,7 +973,7 @@ function handleAuth() {
 
 function renderCalendarFilters(calendars) {
   const saved = ld("selected_calendars", {});
-  const roles = ld("calendar_roles", {});
+  const roles = ld('calendar_roles', {});
   const box = document.getElementById("calendar-filters");
   if (!box) return;
 
@@ -965,57 +982,52 @@ function renderCalendarFilters(calendars) {
     return;
   }
 
-  box.innerHTML = `
-    <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px">
-      Set a calendar to <strong>Tasks</strong> to move those items out of the calendar view and into the Tasks page.
-    </div>
-    ${calendars.map(cal => {
-      const checked = saved[cal.id] !== false;
-      const role = roles[cal.id] || "calendar";
-      const displayName = getCalendarDisplayName(cal);
-      const color = cal.backgroundColor || "#3266ad";
+  box.innerHTML = calendars.map(cal => {
+    const checked = saved[cal.id] !== false;
+    const displayName = getCalendarDisplayName(cal);
+    const color = cal.backgroundColor || "#3266ad";
+    const role = roles[cal.id] || 'calendar';
 
-      return `
-        <div class="calendar-filter-row">
-          <input
-            type="checkbox"
-            ${checked ? "checked" : ""}
-            onchange="toggleCalendarFilter('${esc(cal.id)}', this.checked)"
-            title="Show or hide this calendar everywhere"
-          />
-          <span class="calendar-color-dot" style="background:${color}"></span>
-          <select
-            class="calendar-role-select"
-            onchange="setCalendarRole('${esc(cal.id)}', this.value)"
-            title="Choose where this calendar appears"
-          >
-            <option value="calendar" ${role === "calendar" ? "selected" : ""}>Calendar</option>
-            <option value="tasks" ${role === "tasks" ? "selected" : ""}>Tasks</option>
-          </select>
-          <input
-            class="calendar-name-input"
-            value="${esc(displayName)}"
-            onchange="setCalendarDisplayName('${esc(cal.id)}', this.value)"
-            title="Rename this calendar inside the dashboard"
-          />
-        </div>
-      `;
-    }).join("")}
-  `;
+    return `
+      <div class="calendar-filter-row">
+        <input
+          type="checkbox"
+          ${checked ? "checked" : ""}
+          onchange="toggleCalendarFilter('${esc(cal.id)}', this.checked)"
+          title="Load this Google calendar into the dashboard"
+        />
+        <span class="calendar-color-dot" style="background:${color}"></span>
+        <select class="calendar-role-select" onchange="setCalendarRole('${esc(cal.id)}', this.value)">
+          <option value="calendar" ${role === 'calendar' ? 'selected' : ''}>Calendar</option>
+          <option value="tasks" ${role === 'tasks' ? 'selected' : ''}>Tasks</option>
+        </select>
+        <input
+          class="calendar-name-input"
+          value="${esc(displayName)}"
+          onchange="setCalendarDisplayName('${esc(cal.id)}', this.value)"
+          title="Rename this calendar inside the dashboard"
+        />
+      </div>
+    `;
+  }).join("");
 }
 
-function setCalendarRole(calendarId, role) {
-  const roles = ld("calendar_roles", {});
+function setCalendarRole(calendarId, role){
+  const roles = ld('calendar_roles', {});
   roles[calendarId] = role;
-  sv("calendar_roles", roles);
+  sv('calendar_roles', roles);
+  renderCalendarFilters(googleCalendarsCache);
   renderCalendar();
   renderTasks();
+  if(gapi?.client?.getToken?.()) loadGoogleEvents();
 }
 
 function toggleCalendarFilter(calendarId, checked) {
   const saved = ld("selected_calendars", {});
   saved[calendarId] = checked;
   sv("selected_calendars", saved);
+  renderCalendar();
+  renderTasks();
   loadGoogleEvents();
 }
 
@@ -1038,8 +1050,14 @@ async function loadGoogleEvents() {
     end.setDate(end.getDate() + 7);
   }
 
-  const calendarList =
-    await gapi.client.calendar.calendarList.list();
+  const taskStart = new Date();
+  taskStart.setDate(taskStart.getDate() - 14);
+  taskStart.setHours(0,0,0,0);
+  const taskEnd = new Date();
+  taskEnd.setDate(taskEnd.getDate() + 180);
+  taskEnd.setHours(23,59,59,999);
+
+  const calendarList = await gapi.client.calendar.calendarList.list();
 
   googleCalendarsCache = calendarList.result.items || [];
   window.calendars = googleCalendarsCache;
@@ -1047,32 +1065,40 @@ async function loadGoogleEvents() {
   renderCalendarFilters(googleCalendarsCache);
 
   const selected = ld("selected_calendars", {});
+  const roles = ld('calendar_roles', {});
   let allEvents = [];
+  const seen = new Set();
 
   for (const cal of googleCalendarsCache) {
     if (selected[cal.id] === false) continue;
 
+    const role = roles[cal.id] || 'calendar';
+    const fetchStart = role === 'tasks' ? taskStart : start;
+    const fetchEnd = role === 'tasks' ? taskEnd : end;
+
     try {
-      const response =
-        await gapi.client.calendar.events.list({
-          calendarId: cal.id,
-          timeMin: start.toISOString(),
-          timeMax: end.toISOString(),
-          showDeleted: false,
-          singleEvents: true,
-          orderBy: "startTime",
-        });
+      const response = await gapi.client.calendar.events.list({
+        calendarId: cal.id,
+        timeMin: fetchStart.toISOString(),
+        timeMax: fetchEnd.toISOString(),
+        showDeleted: false,
+        singleEvents: true,
+        orderBy: "startTime",
+      });
 
       const calEvents = response.result.items || [];
 
       calEvents.forEach(e => {
+        const uniqueKey = `${cal.id}-${e.id || e.summary}-${e.start?.dateTime || e.start?.date || ''}`;
+        if(seen.has(uniqueKey)) return;
+        seen.add(uniqueKey);
+
         e.calendarColor = cal.backgroundColor || "#3266ad";
         e.originalCalendarName = cal.summary || "Calendar";
         e.calendarName = getCalendarDisplayName(cal);
         e.calendarId = cal.id;
+        allEvents.push(e);
       });
-
-      allEvents.push(...calEvents);
 
     } catch (err) {
       console.log("Skipped calendar:", cal.summary, err);
@@ -1083,6 +1109,8 @@ async function loadGoogleEvents() {
   renderCalendar();
   renderTasks();
 }
+
+function formatGoogleDate
 
 function formatGoogleDate(start) {
   const raw = start.dateTime || start.date;
