@@ -137,6 +137,97 @@
     .week-event, .month-event { font-size:10px; }
   }
 
+
+  .task-toolbar{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .task-sort-label{font-size:12px;color:var(--text2);}
+  .task-sort-btn{
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:8px;
+    border:0.5px solid var(--border2);
+    background:var(--bg2);
+    color:var(--text2);
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .task-sort-btn:hover{color:var(--text);background:var(--bg3);}
+  .task-sort-btn.active{
+    background:#3266ad;
+    color:white;
+    border-color:#3266ad;
+  }
+  .task-main{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    flex:1;
+    min-width:0;
+  }
+  .task-title-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .task-title{
+    font-size:15px;
+    font-weight:500;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .task-bottom-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    font-size:12px;
+    color:var(--text2);
+  }
+  .task-tag-pill{
+    background:var(--bg2);
+    border:0.5px solid var(--border);
+    padding:3px 8px;
+    border-radius:999px;
+    max-width:260px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    color:var(--text2);
+    font-family:inherit;
+    font-size:12px;
+    outline:none;
+  }
+  input.task-tag-pill:hover,
+  input.task-tag-pill:focus{
+    border-color:var(--border2);
+    background:var(--bg);
+    color:var(--text);
+  }
+  .completed-box{
+    margin-top:8px;
+    padding:10px 14px;
+    border-radius:12px;
+    background:var(--bg2);
+  }
+  .completed-box .task-item{
+    opacity:0.65;
+  }
+  .task-check{
+    width:22px;
+    height:22px;
+    border-radius:6px;
+  }
+  .task-check.checked{
+    transform:scale(1.05);
+  }
+
 </style>
 </head>
 <body>
@@ -178,12 +269,12 @@
       <div class="metric"><div class="label">Goals on track</div><div class="value" id="goals-on-track">0/0</div></div>
     </div>
     <div class="card"><h3>Tasks</h3>
-      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-        <span style="font-size:12px;color:var(--text2)">Sort by</span>
-        <button class="cal-btn" id="sort-due" onclick="setTaskSort('due')">Due date</button>
-        <button class="cal-btn" id="sort-class" onclick="setTaskSort('class')">Class</button>
-        <button class="cal-btn" id="sort-priority" onclick="setTaskSort('priority')">Priority</button>
-        <button class="cal-btn" id="sort-alpha" onclick="setTaskSort('alpha')">A-Z</button>
+      <div class="task-toolbar">
+        <span class="task-sort-label">Sort by</span>
+        <button class="task-sort-btn" id="sort-due" onclick="setTaskSort('due')">Due date</button>
+        <button class="task-sort-btn" id="sort-class" onclick="setTaskSort('class')">Class</button>
+        <button class="task-sort-btn" id="sort-priority" onclick="setTaskSort('priority')">Priority</button>
+        <button class="task-sort-btn" id="sort-alpha" onclick="setTaskSort('alpha')">A-Z</button>
       </div>
       <div id="task-list"></div>
       <div class="input-row">
@@ -337,6 +428,7 @@
 function ld(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
 function sv(k,v){localStorage.setItem(k,JSON.stringify(v));}
 function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function js(v){return JSON.stringify(String(v ?? ''));}
 
 // ── DATA ─────────────────────────────────────────────────────────
 let tasks    =ld('ld_tasks',   []);
@@ -466,41 +558,80 @@ function updateTaskSortButtons(){
 }
 
 function renderTaskRow(t, opts){
-  const dueText = t.due && !isNaN(t.due) ? ` · Due ${t.due.toLocaleDateString('en-US',{month:'short',day:'numeric'})}` : '';
-  const priorityClass = t.priority === 'high' ? 'red' : t.priority === 'medium' ? 'amber' : 'blue';
+  const dueText = t.due && !isNaN(t.due)
+    ? t.due.toLocaleDateString('en-US',{month:'short',day:'numeric'})
+    : 'No due date';
+
+  const priorityColor =
+    t.priority === 'high'
+      ? '#D85A30'
+      : t.priority === 'medium'
+      ? '#EF9F27'
+      : '#1D9E75';
 
   if(opts.isCalendarTask){
     return `
       <div class="task-item">
-        <div class="task-check ${t.done?'checked':''}" onclick="toggleCalendarTask('${esc(t.id)}')"></div>
-        <div class="task-text">
-          <input class="inline-input" value="${esc(t.text)}" onchange="updateCalendarTask('${esc(t.id)}','text',this.value)" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}" />
-          <div class="task-meta">
-            <input class="inline-input" value="${esc(t.tag)}" onchange="updateCalendarTask('${esc(t.id)}','tag',this.value)" style="max-width:150px;font-size:11px;color:var(--text2);padding:0 3px" />
-            ·
-            <select class="mini-input" onchange="updateCalendarTask('${esc(t.id)}','priority',this.value)" style="width:82px">
-              <option value="low" ${t.priority==='low'?'selected':''}>low</option>
-              <option value="medium" ${t.priority==='medium'?'selected':''}>medium</option>
-              <option value="high" ${t.priority==='high'?'selected':''}>high</option>
+        <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleCalendarTask(${js(t.id)})"></div>
+
+        <div class="task-main">
+          <div class="task-title-row">
+            <input
+              class="inline-input task-title"
+              value="${esc(t.text)}"
+              onchange="updateCalendarTask(${js(t.id)}, 'text', this.value)"
+              style="text-decoration:${t.done ? 'line-through' : 'none'};color:${t.done ? 'var(--text2)' : 'var(--text)'}"
+            />
+
+            <button class="del-btn" onclick="deleteCalendarTask(${js(t.id)})">✕</button>
+          </div>
+
+          <div class="task-bottom-row">
+            <input
+              class="task-tag-pill"
+              value="${esc(t.tag)}"
+              onchange="updateCalendarTask(${js(t.id)}, 'tag', this.value)"
+            />
+
+            <span>Due ${dueText}</span>
+
+            <select
+              class="mini-input"
+              onchange="updateCalendarTask(${js(t.id)}, 'priority', this.value)"
+              style="width:90px;color:${priorityColor}"
+            >
+              <option value="low" ${t.priority === 'low' ? 'selected' : ''}>low</option>
+              <option value="medium" ${t.priority === 'medium' ? 'selected' : ''}>medium</option>
+              <option value="high" ${t.priority === 'high' ? 'selected' : ''}>high</option>
             </select>
-            priority${dueText} · From calendar
           </div>
         </div>
-        <button class="del-btn" onclick="deleteCalendarTask('${esc(t.id)}')">✕</button>
       </div>`;
   }
 
   return `
     <div class="task-item">
-      <div class="task-check ${t.done?'checked':''}" onclick="toggleTask(${opts.index})"></div>
-      <div class="task-text">
-        <input class="inline-input" value="${esc(t.text)}" onchange="updateTask(${opts.index},'text',this.value)" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}" />
-        <div class="task-meta">${esc(t.tag)} · ${t.priority} priority</div>
+      <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleTask(${opts.index})"></div>
+
+      <div class="task-main">
+        <div class="task-title-row">
+          <input
+            class="inline-input task-title"
+            value="${esc(t.text)}"
+            onchange="updateTask(${opts.index}, 'text', this.value)"
+            style="text-decoration:${t.done ? 'line-through' : 'none'};color:${t.done ? 'var(--text2)' : 'var(--text)'}"
+          />
+
+          <button class="del-btn" onclick="deleteTask(${opts.index})">✕</button>
+        </div>
+
+        <div class="task-bottom-row">
+          <span class="task-tag-pill">${esc(t.tag)}</span>
+          <span>${esc(t.priority)} priority</span>
+        </div>
       </div>
-      <button class="del-btn" onclick="deleteTask(${opts.index})">✕</button>
     </div>`;
 }
-
 function renderTasks(){
   const calendarTasks = getCalendarTasks();
   const personalTasks = tasks.map((t,i)=>({...t, personalIndex:i, calendarTask:false}));
@@ -525,7 +656,7 @@ function renderTasks(){
     <div class="section-title">Active</div>
     ${activeHtml}
     <div class="section-title" style="margin-top:18px">Completed</div>
-    <div style="background:var(--bg2);border-radius:var(--radius-md);padding:8px 10px">
+    <div class="completed-box">
       ${completedHtml}
     </div>
   `;
