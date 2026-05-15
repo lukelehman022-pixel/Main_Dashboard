@@ -585,14 +585,25 @@ function renderTaskRow(t){
 function renderTasks(){
   const calendarTasks = getCalendarTasks();
   const personalTasks = getPersonalTasksForRender();
+
   const allTasks = [...calendarTasks, ...personalTasks];
 
-  const activeTasks = sortTasks(allTasks.filter(t => !t.done));
-  const completedTasks = sortTasks(allTasks.filter(t => t.done));
+  const weekTasks = allTasks.filter(t => {
+    return !t.due || isInSelectedWeek(t.due);
+  });
+
+  const activeTasks = sortTasks(
+    weekTasks.filter(t => t.done !== true)
+  );
+
+  const completedTasks = sortTasks(
+    weekTasks.filter(t => t.done === true)
+  );
 
   document.getElementById('open-count').textContent = activeTasks.length;
   document.getElementById('done-count').textContent = completedTasks.length;
-  document.getElementById('ov-tasks').textContent = completedTasks.length + '/' + allTasks.length;
+  document.getElementById('ov-tasks').textContent =
+    completedTasks.length + '/' + weekTasks.length;
 
   document.getElementById('task-list').innerHTML = `
     <div class="task-toolbar">
@@ -603,22 +614,39 @@ function renderTasks(){
     </div>
 
     <div class="section-title">Active</div>
-    ${activeTasks.length ? activeTasks.map(renderTaskRow).join('') : '<p style="color:var(--text2);font-size:13px">No active tasks.</p>'}
+    ${
+      activeTasks.length
+        ? activeTasks.map(renderTaskRow).join('')
+        : '<p style="color:var(--text2);font-size:13px">No active tasks.</p>'
+    }
 
     <div class="section-title" style="margin-top:18px">Completed</div>
     <div class="task-section-box">
-      ${completedTasks.length ? completedTasks.map(renderTaskRow).join('') : '<p style="color:var(--text2);font-size:13px">No completed tasks yet.</p>'}
+      ${
+        completedTasks.length
+          ? completedTasks.map(renderTaskRow).join('')
+          : '<p style="color:var(--text2);font-size:13px">No completed tasks yet.</p>'
+      }
     </div>
   `;
 
-  document.getElementById('ov-task-list').innerHTML = activeTasks.slice(0,4).map(t => `
-    <div class="task-item">
-      <div class="task-check ${t.done?'checked':''}" onclick="${t.calendarTask ? `toggleCalendarTask(${safeJs(t.id)})` : `toggleTask(${t.personalIndex})`}"></div>
-      <div class="task-text">${esc(t.text)}</div>
-      <span class="badge ${t.priority==='high'?'red':t.priority==='medium'?'amber':'blue'}">${t.priority}</span>
-    </div>`).join('');
+  document.getElementById('ov-task-list').innerHTML =
+    activeTasks.slice(0,4).map(t => `
+      <div class="task-item">
+        <div class="task-check ${t.done ? 'checked' : ''}"
+          onclick="${t.calendarTask ? `toggleCalendarTask(${safeJs(t.id)})` : `toggleTask(${t.personalIndex})`}">
+        </div>
+        <div class="task-text">${esc(t.text)}</div>
+        <span class="badge ${t.priority==='high'?'red':t.priority==='medium'?'amber':'blue'}">${t.priority}</span>
+      </div>
+    `).join('');
 }
-function toggleTask(i){tasks[i].done=!tasks[i].done;sv('ld_tasks',tasks);renderTasks();}
+function toggleCalendarTask(id){
+  const completed = ld('calendar_task_done', {});
+  completed[id] = completed[id] === true ? false : true;
+  sv('calendar_task_done', completed);
+  renderTasks();
+}
 function updateTask(i,f,v){tasks[i][f]=v;sv('ld_tasks',tasks);renderTasks();}
 function deleteTask(i){tasks.splice(i,1);sv('ld_tasks',tasks);renderTasks();}
 function addTask(){
