@@ -590,43 +590,91 @@ function handleAuth() {
 }
 
 async function loadGoogleEvents() {
+
   const now = new Date();
 
   const weekFromNow = new Date();
   weekFromNow.setDate(now.getDate() + 7);
 
-  const response = await gapi.client.calendar.events.list({
-    calendarId: "primary",
-    timeMin: now.toISOString(),
-    timeMax: weekFromNow.toISOString(),
-    showDeleted: false,
-    singleEvents: true,
-    orderBy: "startTime",
+  const calendarList =
+    await gapi.client.calendar.calendarList.list();
+
+  const calendars = calendarList.result.items || [];
+
+  let allEvents = [];
+
+  for (const cal of calendars) {
+
+    try {
+
+      const response =
+        await gapi.client.calendar.events.list({
+          calendarId: cal.id,
+          timeMin: now.toISOString(),
+          timeMax: weekFromNow.toISOString(),
+          showDeleted: false,
+          singleEvents: true,
+          orderBy: "startTime",
+        });
+
+      const events = response.result.items || [];
+
+      events.forEach(e => {
+        e.calendarColor =
+          cal.backgroundColor || "#3266ad";
+
+        e.calendarName =
+          cal.summary || "Calendar";
+      });
+
+      allEvents.push(...events);
+
+    } catch (err) {
+      console.log("Skipped calendar:", cal.summary);
+    }
+  }
+
+  allEvents.sort((a, b) => {
+    return new Date(
+      a.start.dateTime || a.start.date
+    ) - new Date(
+      b.start.dateTime || b.start.date
+    );
   });
 
-  const googleEvents = response.result.items || [];
-
-  const existing =
-    document.getElementById("event-list").innerHTML;
-
-  const googleHTML = googleEvents.map(e => `
-    <div class="event-item">
-      <div class="event-dot" style="background:#3266ad"></div>
-
-      <div style="flex:1">
-        <div style="font-size:13px">
-          ${e.summary || "Untitled event"}
-        </div>
-
-        <div style="font-size:11px;color:var(--text2)">
-          ${formatGoogleDate(e.start)}
-        </div>
-      </div>
-    </div>
-  `).join("");
-
   document.getElementById("event-list").innerHTML =
-    googleHTML + existing;
+    allEvents.map(e => `
+
+      <div class="event-item">
+
+        <div
+          class="event-dot"
+          style="background:${e.calendarColor}">
+        </div>
+
+        <div style="flex:1">
+
+          <div style="font-size:13px">
+            ${e.summary || "Untitled"}
+          </div>
+
+          <div
+            style="
+              font-size:11px;
+              color:var(--text2)
+            ">
+
+            ${formatGoogleDate(e.start)}
+            ·
+            ${e.calendarName}
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `).join("");
 }
 
 function formatGoogleDate(start) {
