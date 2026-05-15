@@ -242,6 +242,12 @@
       <div class="card"><h3>May 2026</h3><div class="cal-grid" id="cal-grid"></div></div>
       <div class="card"><h3>Events</h3><div id="event-list"></div></div>
     </div>
+    <div class="card">
+  <h3>Google Calendar</h3>
+  <button onclick="handleAuth()">
+    Connect Google Calendar
+  </button>
+</div>
     <div class="card"><h3>Add event</h3>
       <div class="input-row">
         <input type="text" id="event-input" placeholder="Event name..." />
@@ -257,6 +263,8 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js"></script>
 <script>
 // ── STORAGE ──────────────────────────────────────────────────────
 function ld(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
@@ -547,7 +555,92 @@ function renderFinChart(){
   if(fnChart)fnChart.destroy();
   fnChart=new Chart(document.getElementById('finChart'),{type:'bar',data:{labels:['Dec','Jan','Feb','Mar','Apr','May'],datasets:[{label:'Income',data:[0,0,0,0,0,income],backgroundColor:'#3266ad',borderRadius:3},{label:'Spending',data:[0,0,0,0,0,totalSpend],backgroundColor:'rgba(216,90,48,0.7)',borderRadius:3}]},options:{...cd,scales:{y:{ticks:{color:tC,callback:v=>'$'+v},grid:{color:gC}},x:{ticks:{color:tC},grid:{display:false}}}}});
 }
+// ── GOOGLE CALENDAR ─────────────────────────────────────────────
 
+const CLIENT_ID = "857274845303-vfupbbl28ve0lavg4ec01saqeadec1la.apps.googleusercontent.com";
+const API_KEY = "AIzaSyDdUWCvjTJB_Kes73qUQchf5Q4yE5LVySA";
+
+const DISCOVERY_DOC =
+  "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
+
+const SCOPES =
+  "https://www.googleapis.com/auth/calendar.readonly";
+
+let tokenClient;
+
+async function initGoogleCalendar() {
+  await gapi.client.init({
+    apiKey: API_KEY,
+    discoveryDocs: [DISCOVERY_DOC],
+  });
+
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: async () => {
+      await loadGoogleEvents();
+    },
+  });
+}
+
+function handleAuth() {
+  tokenClient.requestAccessToken({
+    prompt: "consent",
+  });
+}
+
+async function loadGoogleEvents() {
+  const now = new Date();
+
+  const weekFromNow = new Date();
+  weekFromNow.setDate(now.getDate() + 7);
+
+  const response = await gapi.client.calendar.events.list({
+    calendarId: "primary",
+    timeMin: now.toISOString(),
+    timeMax: weekFromNow.toISOString(),
+    showDeleted: false,
+    singleEvents: true,
+    orderBy: "startTime",
+  });
+
+  const googleEvents = response.result.items || [];
+
+  const existing =
+    document.getElementById("event-list").innerHTML;
+
+  const googleHTML = googleEvents.map(e => `
+    <div class="event-item">
+      <div class="event-dot" style="background:#3266ad"></div>
+
+      <div style="flex:1">
+        <div style="font-size:13px">
+          ${e.summary || "Untitled event"}
+        </div>
+
+        <div style="font-size:11px;color:var(--text2)">
+          ${formatGoogleDate(e.start)}
+        </div>
+      </div>
+    </div>
+  `).join("");
+
+  document.getElementById("event-list").innerHTML =
+    googleHTML + existing;
+}
+
+function formatGoogleDate(start) {
+  const raw = start.dateTime || start.date;
+
+  return new Date(raw).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+gapi.load("client", initGoogleCalendar);
 // ── INIT ─────────────────────────────────────────────────────────
 renderTasks();
 renderGoals();
