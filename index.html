@@ -100,27 +100,41 @@
   .mini-input { width: 72px; font-size: 12px; padding: 2px 6px; border: 0.5px solid var(--border2); border-radius: 4px; background: var(--bg); color: var(--text); font-family: inherit; outline: none; }
 
 
-  .calendar-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
-  .calendar-title { font-size:16px; font-weight:500; }
-  .calendar-controls { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-  .calendar-controls button { font-size:12px; padding:5px 10px; border-radius:var(--radius-md); border:0.5px solid var(--border2); background:var(--bg); color:var(--text); cursor:pointer; font-family:inherit; }
-  .calendar-controls button.active { background:#3266ad; color:white; border-color:#3266ad; }
-  .gcal-month-grid { display:grid; grid-template-columns:repeat(7,1fr); border-top:0.5px solid var(--border); border-left:0.5px solid var(--border); }
-  .gcal-month-head { font-size:11px; color:var(--text2); padding:7px 6px; border-right:0.5px solid var(--border); border-bottom:0.5px solid var(--border); text-align:center; }
-  .gcal-month-cell { min-height:94px; padding:6px; border-right:0.5px solid var(--border); border-bottom:0.5px solid var(--border); overflow:hidden; }
-  .gcal-month-cell.other-month { background:var(--bg2); opacity:.72; }
-  .gcal-day-num { font-size:11px; color:var(--text2); margin-bottom:4px; }
-  .gcal-day-num.today { background:#3266ad; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; }
-  .gcal-event-pill { font-size:11px; line-height:1.2; color:white; border-radius:4px; padding:2px 5px; margin:2px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .gcal-week-grid { display:grid; grid-template-columns:56px repeat(7,1fr); border-top:0.5px solid var(--border); border-left:0.5px solid var(--border); overflow:auto; }
-  .gcal-week-corner, .gcal-week-head { min-height:44px; padding:6px; border-right:0.5px solid var(--border); border-bottom:0.5px solid var(--border); font-size:11px; color:var(--text2); text-align:center; background:var(--bg); position:sticky; top:0; z-index:2; }
-  .gcal-week-time { min-height:54px; padding:4px 6px; border-right:0.5px solid var(--border); border-bottom:0.5px solid var(--border); font-size:10px; color:var(--text3); text-align:right; background:var(--bg); }
-  .gcal-week-slot { min-height:54px; padding:2px; border-right:0.5px solid var(--border); border-bottom:0.5px solid var(--border); background:var(--bg); overflow:hidden; }
-  .gcal-week-event { font-size:10px; line-height:1.2; color:white; border-radius:5px; padding:3px 4px; margin-bottom:2px; overflow:hidden; }
-  .calendar-filter-row { display:grid; grid-template-columns:20px 12px 1fr; gap:8px; align-items:center; padding:6px 0; border-bottom:0.5px solid var(--border); }
+  .calendar-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .calendar-toolbar-left, .calendar-toolbar-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .cal-btn { font-size:13px; padding:6px 12px; border-radius:var(--radius-md); border:0.5px solid var(--border2); background:var(--bg); color:var(--text); cursor:pointer; font-family:inherit; }
+  .cal-btn:hover { background:var(--bg2); }
+  .cal-btn.active { background:#3266ad; color:#fff; border-color:#3266ad; }
+  .calendar-title { font-size:18px; font-weight:500; }
+  .calendar-shell { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; margin-bottom:12px; }
+  .month-grid { display:grid; grid-template-columns:repeat(7,1fr); min-height:620px; }
+  .month-head { padding:10px; font-size:12px; color:var(--text2); font-weight:500; border-bottom:0.5px solid var(--border); background:var(--bg2); }
+  .month-cell { min-height:108px; border-right:0.5px solid var(--border); border-bottom:0.5px solid var(--border); padding:6px; overflow:hidden; }
+  .month-cell:nth-child(7n) { border-right:none; }
+  .month-cell.other-month { opacity:0.45; }
+  .month-date { font-size:12px; color:var(--text2); margin-bottom:4px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:50%; }
+  .month-date.today { background:#3266ad; color:#fff; font-weight:600; }
+  .month-event { font-size:11px; padding:2px 5px; border-radius:5px; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#fff; cursor:pointer; }
+  .week-grid { display:grid; grid-template-columns:70px repeat(7,1fr); min-height:680px; }
+  .week-corner, .week-day-head { padding:10px 6px; border-bottom:0.5px solid var(--border); background:var(--bg2); color:var(--text2); font-size:12px; text-align:center; }
+  .week-day-head strong { display:block; color:var(--text); font-size:16px; font-weight:500; margin-top:3px; }
+  .week-time { border-right:0.5px solid var(--border); border-bottom:0.5px solid var(--border); color:var(--text3); font-size:11px; padding:4px 6px; min-height:46px; text-align:right; }
+  .week-slot { min-height:46px; border-right:0.5px solid var(--border); border-bottom:0.5px solid var(--border); padding:2px; position:relative; overflow:hidden; }
+  .week-slot:nth-child(8n) { border-right:none; }
+  .week-event { font-size:11px; line-height:1.25; color:#fff; border-radius:6px; padding:4px 5px; margin-bottom:2px; overflow:hidden; cursor:pointer; }
+  .calendar-filter-row { display:grid; grid-template-columns:22px 16px 1fr; gap:8px; align-items:center; padding:6px 0; border-bottom:0.5px solid var(--border); }
   .calendar-filter-row:last-child { border-bottom:none; }
-  .calendar-filter-color { width:10px; height:10px; border-radius:50%; }
-  @media(max-width:700px){ .gcal-month-cell{min-height:72px;padding:4px}.gcal-event-pill{font-size:10px;padding:2px 3px}.gcal-week-grid{grid-template-columns:44px repeat(7,120px)} }
+  .calendar-name-input { width:100%; font-size:13px; padding:4px 6px; border:0.5px solid transparent; border-radius:5px; background:transparent; color:var(--text); font-family:inherit; outline:none; }
+  .calendar-name-input:hover, .calendar-name-input:focus { border-color:var(--border2); background:var(--bg2); }
+  .calendar-color-dot { width:10px; height:10px; border-radius:50%; }
+  .event-list-card { max-height:280px; overflow:auto; }
+  @media(max-width:700px){
+    .month-grid { min-height:480px; }
+    .month-cell { min-height:82px; padding:4px; }
+    .week-grid { grid-template-columns:48px repeat(7,1fr); }
+    .week-time { font-size:10px; padding:4px 3px; }
+    .week-event, .month-event { font-size:10px; }
+  }
 
 </style>
 </head>
@@ -261,37 +275,42 @@
 
   <!-- CALENDAR -->
   <div class="tab" id="tab-calendar">
-    <div class="card">
-      <div class="calendar-toolbar">
+    <div class="calendar-toolbar">
+      <div class="calendar-toolbar-left">
+        <button class="cal-btn" onclick="calendarPrev()">‹</button>
+        <button class="cal-btn" onclick="calendarToday()">Today</button>
+        <button class="cal-btn" onclick="calendarNext()">›</button>
         <div class="calendar-title" id="calendar-title">Calendar</div>
-        <div class="calendar-controls">
-          <button onclick="moveCalendar(-1)"><i class="ti ti-chevron-left"></i></button>
-          <button onclick="goCalendarToday()">Today</button>
-          <button onclick="moveCalendar(1)"><i class="ti ti-chevron-right"></i></button>
-          <button id="cal-week-btn" onclick="setCalendarView('week')">Week</button>
-          <button id="cal-month-btn" onclick="setCalendarView('month')">Month</button>
-          <button onclick="handleAuth()">Connect Google Calendar</button>
-        </div>
       </div>
-      <div id="calendar-view"></div>
+      <div class="calendar-toolbar-right">
+        <button class="cal-btn active" id="month-view-btn" onclick="setCalendarView('month')">Month</button>
+        <button class="cal-btn" id="week-view-btn" onclick="setCalendarView('week')">Week</button>
+        <button class="cal-btn" onclick="handleAuth()">Connect Google Calendar</button>
+      </div>
     </div>
 
     <div class="grid2">
       <div class="card">
-        <h3>Calendar filters and names</h3>
-        <div id="calendar-filters"><p style="color:var(--text2);font-size:13px">Connect Google Calendar to choose which calendars show and rename them inside this app.</p></div>
+        <h3>Calendar filters</h3>
+        <div id="calendar-filters">
+          <p style="color:var(--text2);font-size:13px">Connect Google Calendar to choose calendars.</p>
+        </div>
       </div>
 
-      <div class="card">
+      <div class="card event-list-card">
         <h3>Events</h3>
         <div id="event-list"></div>
       </div>
     </div>
 
+    <div class="calendar-shell">
+      <div id="calendar-main"></div>
+    </div>
+
     <div class="card"><h3>Add manual event</h3>
       <div class="input-row">
         <input type="text" id="event-input" placeholder="Event name..." />
-        <input type="text" id="event-date" placeholder="May 20" style="max-width:100px" />
+        <input type="text" id="event-date" placeholder="May 20" style="max-width:120px" />
         <select id="event-color">
           <option value="#3266ad">Blue</option><option value="#1D9E75">Green</option>
           <option value="#EF9F27">Amber</option><option value="#D85A30">Red</option><option value="#7F77DD">Purple</option>
@@ -300,9 +319,7 @@
       </div>
     </div>
   </div>
-</div></div>
 </div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js"></script>
@@ -322,8 +339,9 @@ let budget   =ld('ld_budget',  []);
 let txs      =ld('ld_txs',     []);
 let healthLog=ld('ld_health',  []);
 let googleEventsCache = [];
-let calendarView = ld('ld_calendar_view', 'week');
-let calendarAnchor = new Date();
+let googleCalendarsCache = [];
+let calendarView = ld('calendar_view', 'month');
+let calendarCursor = new Date();
 
 // ── TAB ──────────────────────────────────────────────────────────
 function switchTab(id,btn){
@@ -334,7 +352,6 @@ function switchTab(id,btn){
   if(id==='overview'){renderTasks();renderHabits();renderFinance();renderSpendChart();}
   if(id==='health') renderHealthCharts();
   if(id==='finance'){renderFinance();renderFinChart();}
-  if(id==='calendar'){renderCalendar(); if(gapi?.client?.getToken?.()) loadGoogleEvents();}
 }
 
 // ── TASKS ────────────────────────────────────────────────────────
@@ -536,139 +553,240 @@ function addNote(){
 function deleteNote(i){if(!confirm('Delete note?'))return;notes.splice(i,1);sv('ld_notes',notes);renderNotes();document.getElementById('note-detail').innerHTML='<p style="color:var(--text2);font-size:13px">Select a note to edit it.</p>';}
 
 // ── CALENDAR ────────────────────────────────────────────────────
-function startOfDay(d){const x=new Date(d);x.setHours(0,0,0,0);return x;}
-function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
-function startOfWeek(d){const x=startOfDay(d);const day=x.getDay();x.setDate(x.getDate()-day);return x;}
-function startOfMonth(d){return new Date(d.getFullYear(),d.getMonth(),1);}
-function endOfMonth(d){return new Date(d.getFullYear(),d.getMonth()+1,0,23,59,59,999);}
-function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
-function eventStartDate(e){return new Date(e.start?.dateTime || e.start?.date || e.isoStart || new Date());}
-function eventEndDate(e){return new Date(e.end?.dateTime || e.end?.date || e.isoEnd || e.start?.dateTime || e.start?.date || new Date());}
-function calendarDateLabel(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
-function calendarTimeLabel(d){return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).replace(':00','');}
-function getCalendarDisplayName(id,fallback){const names=ld('calendar_display_names',{});return names[id] || fallback || 'Calendar';}
-function setCalendarDisplayName(id,value){const names=ld('calendar_display_names',{});names[id]=value.trim()||undefined;sv('calendar_display_names',names);loadGoogleEvents();}
-function makeManualCalendarEvents(){
-  return events.map((e,i)=>({
-    id:'manual-'+i,
-    summary:e.name,
-    calendarName:'Manual',
-    calendarColor:e.color || '#3266ad',
-    manualIndex:i,
-    isoStart:parseManualEventDate(e.date).toISOString(),
-    isoEnd:parseManualEventDate(e.date).toISOString(),
-    start:{dateTime:parseManualEventDate(e.date).toISOString()},
-    end:{dateTime:parseManualEventDate(e.date).toISOString()},
-    isManual:true
-  }));
+function getCalendarDisplayName(cal){
+  const names = ld('calendar_display_names', {});
+  return names[cal.id] || cal.summary || 'Calendar';
 }
-function parseManualEventDate(text){
-  const now=new Date();
-  if(!text || text==='TBD') return now;
-  const parsed=new Date(`${text} ${now.getFullYear()}`);
-  return isNaN(parsed) ? now : parsed;
+
+function setCalendarDisplayName(calendarId, value){
+  const names = ld('calendar_display_names', {});
+  names[calendarId] = value.trim() || value;
+  sv('calendar_display_names', names);
+
+  googleEventsCache.forEach(e => {
+    if(e.calendarId === calendarId) e.calendarName = names[calendarId] || e.originalCalendarName || e.calendarName;
+  });
+
+  renderCalendar();
+  if(gapi?.client?.getToken?.()) loadGoogleEvents();
 }
-function visibleCalendarEvents(){return [...googleEventsCache,...makeManualCalendarEvents()].sort((a,b)=>eventStartDate(a)-eventStartDate(b));}
-function eventsForDay(day){return visibleCalendarEvents().filter(e=>sameDay(eventStartDate(e),day));}
-function setCalendarView(view){calendarView=view;sv('ld_calendar_view',view);loadGoogleEvents();renderCalendar();}
-function moveCalendar(step){
-  if(calendarView==='month') calendarAnchor=new Date(calendarAnchor.getFullYear(),calendarAnchor.getMonth()+step,1);
-  else calendarAnchor=addDays(calendarAnchor,step*7);
-  loadGoogleEvents();renderCalendar();
+
+function manualEventToCalendarEvent(e, i){
+  const date = parseManualEventDate(e.date);
+  return {
+    id: 'manual-' + i,
+    summary: e.name,
+    start: { dateTime: date.toISOString() },
+    calendarColor: e.color || '#3266ad',
+    calendarName: 'Manual',
+    originalCalendarName: 'Manual',
+    calendarId: 'manual',
+    isManual: true,
+    manualIndex: i
+  };
 }
-function goCalendarToday(){calendarAnchor=new Date();loadGoogleEvents();renderCalendar();}
-function calendarRange(){
-  if(calendarView==='month'){
-    const start=startOfWeek(startOfMonth(calendarAnchor));
-    const end=addDays(startOfWeek(endOfMonth(calendarAnchor)),7);
-    return {start,end};
-  }
-  const start=startOfWeek(calendarAnchor);
-  const end=addDays(start,7);
-  return {start,end};
+
+function parseManualEventDate(value){
+  const year = calendarCursor.getFullYear();
+  const parsed = new Date(`${value || ''} ${year}`);
+  if(!isNaN(parsed)) return parsed;
+  return new Date(year, calendarCursor.getMonth(), calendarCursor.getDate(), 9, 0);
 }
+
+function eventStartDate(e){
+  const raw = e.start?.dateTime || e.start?.date;
+  return new Date(raw);
+}
+
+function getAllVisibleEvents(){
+  const manualEvents = events.map(manualEventToCalendarEvent);
+  return [...googleEventsCache, ...manualEvents].sort((a,b)=>eventStartDate(a)-eventStartDate(b));
+}
+
+function sameDay(a,b){
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+function startOfWeek(date){
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+function calendarToday(){
+  calendarCursor = new Date();
+  renderCalendar();
+  if(gapi?.client?.getToken?.()) loadGoogleEvents();
+}
+
+function calendarPrev(){
+  if(calendarView === 'month') calendarCursor.setMonth(calendarCursor.getMonth() - 1);
+  else calendarCursor.setDate(calendarCursor.getDate() - 7);
+  renderCalendar();
+  if(gapi?.client?.getToken?.()) loadGoogleEvents();
+}
+
+function calendarNext(){
+  if(calendarView === 'month') calendarCursor.setMonth(calendarCursor.getMonth() + 1);
+  else calendarCursor.setDate(calendarCursor.getDate() + 7);
+  renderCalendar();
+  if(gapi?.client?.getToken?.()) loadGoogleEvents();
+}
+
+function setCalendarView(view){
+  calendarView = view;
+  sv('calendar_view', view);
+  renderCalendar();
+  if(gapi?.client?.getToken?.()) loadGoogleEvents();
+}
+
 function renderCalendar(){
-  const title=document.getElementById('calendar-title');
-  const weekBtn=document.getElementById('cal-week-btn');
-  const monthBtn=document.getElementById('cal-month-btn');
-  if(weekBtn) weekBtn.classList.toggle('active',calendarView==='week');
-  if(monthBtn) monthBtn.classList.toggle('active',calendarView==='month');
-  if(title){
-    if(calendarView==='month') title.textContent=calendarAnchor.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-    else{
-      const s=startOfWeek(calendarAnchor), e=addDays(s,6);
-      title.textContent=`${calendarDateLabel(s)} – ${calendarDateLabel(e)}`;
-    }
-  }
-  const view=document.getElementById('calendar-view');
-  if(view) view.innerHTML=calendarView==='month'?renderMonthView():renderWeekView();
+  const title = document.getElementById('calendar-title');
+  const main = document.getElementById('calendar-main');
+  const monthBtn = document.getElementById('month-view-btn');
+  const weekBtn = document.getElementById('week-view-btn');
+  if(!main) return;
+
+  if(monthBtn) monthBtn.classList.toggle('active', calendarView === 'month');
+  if(weekBtn) weekBtn.classList.toggle('active', calendarView === 'week');
+
+  if(calendarView === 'week') renderWeekCalendar(title, main);
+  else renderMonthCalendar(title, main);
+
   renderEventList();
 }
-function renderMonthView(){
-  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const first=startOfWeek(startOfMonth(calendarAnchor));
-  const today=startOfDay(new Date());
-  let html='<div class="gcal-month-grid">';
-  html+=days.map(d=>`<div class="gcal-month-head">${d}</div>`).join('');
+
+function renderMonthCalendar(title, main){
+  const year = calendarCursor.getFullYear();
+  const month = calendarCursor.getMonth();
+  const today = new Date();
+
+  title.textContent = calendarCursor.toLocaleDateString('en-US', {
+    month:'long',
+    year:'numeric'
+  });
+
+  const first = new Date(year, month, 1);
+  const gridStart = new Date(first);
+  gridStart.setDate(first.getDate() - first.getDay());
+
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html = '<div class="month-grid">';
+  html += days.map(d => `<div class="month-head">${d}</div>`).join('');
+
+  const all = getAllVisibleEvents();
+
   for(let i=0;i<42;i++){
-    const day=addDays(first,i);
-    const dayEvents=eventsForDay(day).slice(0,3);
-    const other=day.getMonth()!==calendarAnchor.getMonth();
-    html+=`<div class="gcal-month-cell ${other?'other-month':''}">
-      <div class="gcal-day-num ${sameDay(day,today)?'today':''}">${day.getDate()}</div>
-      ${dayEvents.map(e=>`<div class="gcal-event-pill" style="background:${e.calendarColor}" title="${esc(e.summary||'Untitled')}">${esc(e.summary||'Untitled')}</div>`).join('')}
-      ${eventsForDay(day).length>3?`<div style="font-size:10px;color:var(--text2);margin-top:2px">+${eventsForDay(day).length-3} more</div>`:''}
-    </div>`;
+    const day = new Date(gridStart);
+    day.setDate(gridStart.getDate() + i);
+
+    const dayEvents = all.filter(e => sameDay(eventStartDate(e), day));
+    const other = day.getMonth() !== month;
+
+    html += `
+      <div class="month-cell ${other ? 'other-month' : ''}">
+        <div class="month-date ${sameDay(day,today) ? 'today' : ''}">${day.getDate()}</div>
+        ${dayEvents.slice(0,4).map(e => `
+          <div class="month-event" style="background:${e.calendarColor}" title="${esc(e.summary || 'Untitled')}">
+            ${formatEventShortTime(e)} ${esc(e.summary || 'Untitled')}
+          </div>
+        `).join('')}
+        ${dayEvents.length > 4 ? `<div style="font-size:11px;color:var(--text2)">+${dayEvents.length-4} more</div>` : ''}
+      </div>
+    `;
   }
-  return html+'</div>';
+
+  html += '</div>';
+  main.innerHTML = html;
 }
-function renderWeekView(){
-  const start=startOfWeek(calendarAnchor);
-  const days=[0,1,2,3,4,5,6].map(i=>addDays(start,i));
-  const today=startOfDay(new Date());
-  let html='<div class="gcal-week-grid">';
-  html+='<div class="gcal-week-corner"></div>';
-  html+=days.map(d=>`<div class="gcal-week-head"><div>${d.toLocaleDateString('en-US',{weekday:'short'})}</div><div class="gcal-day-num ${sameDay(d,today)?'today':''}" style="margin:4px auto 0">${d.getDate()}</div></div>`).join('');
-  for(let hour=6;hour<=23;hour++){
-    const label=new Date(2026,0,1,hour).toLocaleTimeString('en-US',{hour:'numeric'}).replace(' ','');
-    html+=`<div class="gcal-week-time">${label}</div>`;
-    for(const day of days){
-      const slotEvents=eventsForDay(day).filter(e=>{
-        const s=eventStartDate(e);
-        const isAllDay=!!e.start?.date && !e.start?.dateTime;
-        return isAllDay ? hour===6 : s.getHours()===hour;
+
+function renderWeekCalendar(title, main){
+  const start = startOfWeek(calendarCursor);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+
+  title.textContent =
+    `${start.toLocaleDateString('en-US',{month:'short',day:'numeric'})} - ${end.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+
+  const days = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    days.push(d);
+  }
+
+  const all = getAllVisibleEvents();
+
+  let html = '<div class="week-grid">';
+  html += '<div class="week-corner"></div>';
+  html += days.map(d => `
+    <div class="week-day-head">
+      ${d.toLocaleDateString('en-US',{weekday:'short'})}
+      <strong>${d.getDate()}</strong>
+    </div>
+  `).join('');
+
+  for(let hour=6; hour<=22; hour++){
+    html += `<div class="week-time">${formatHour(hour)}</div>`;
+
+    days.forEach(day => {
+      const slotEvents = all.filter(e => {
+        const s = eventStartDate(e);
+        return sameDay(s, day) && (s.getHours() === hour || (!e.start.dateTime && hour === 6));
       });
-      html+=`<div class="gcal-week-slot">${slotEvents.map(e=>`<div class="gcal-week-event" style="background:${e.calendarColor}" title="${esc(e.summary||'Untitled')}"><strong>${calendarTimeLabel(eventStartDate(e))}</strong> ${esc(e.summary||'Untitled')}</div>`).join('')}</div>`;
-    }
-  }
-  return html+'</div>';
-}
-function renderEventList(){
-  const list=document.getElementById('event-list');
-  if(!list) return;
-  const {start,end}=calendarRange();
-  const all=visibleCalendarEvents().filter(e=>eventStartDate(e)>=start && eventStartDate(e)<end);
-  list.innerHTML=all.length?all.map(e=>{
-    if(e.isManual){
-      const i=e.manualIndex;
-      return `<div class="event-item">
-        <div class="event-dot" style="background:${e.calendarColor}"></div>
-        <div style="flex:1;display:grid;grid-template-columns:1fr 90px;gap:6px">
-          <input class="inline-input" value="${esc(events[i].name)}" onchange="updateEvent(${i},'name',this.value)" />
-          <input class="mini-input" value="${esc(events[i].date)}" onchange="updateEvent(${i},'date',this.value)" />
+
+      html += `
+        <div class="week-slot">
+          ${slotEvents.map(e => `
+            <div class="week-event" style="background:${e.calendarColor}" title="${esc(e.summary || 'Untitled')}">
+              <strong>${formatEventShortTime(e)}</strong><br/>
+              ${esc(e.summary || 'Untitled')}
+            </div>
+          `).join('')}
         </div>
-        <button class="del-btn" onclick="deleteEvent(${i})">✕</button>
-      </div>`;
-    }
-    return `<div class="event-item">
+      `;
+    });
+  }
+
+  html += '</div>';
+  main.innerHTML = html;
+}
+
+function renderEventList(){
+  const list = document.getElementById('event-list');
+  if(!list) return;
+
+  const all = getAllVisibleEvents();
+
+  list.innerHTML = all.length ? all.slice(0,50).map(e => `
+    <div class="event-item">
       <div class="event-dot" style="background:${e.calendarColor}"></div>
       <div style="flex:1">
         <div style="font-size:13px">${esc(e.summary || 'Untitled')}</div>
-        <div style="font-size:11px;color:var(--text2)">${formatGoogleDate(e.start)} · ${esc(e.calendarName)}</div>
+        <div style="font-size:11px;color:var(--text2)">
+          ${formatGoogleDate(e.start)} · ${esc(e.calendarName || 'Calendar')}
+        </div>
       </div>
-    </div>`;
-  }).join(''):'<p style="color:var(--text2);font-size:13px">No events in this view.</p>';
+      ${e.isManual ? `<button class="del-btn" onclick="deleteEvent(${e.manualIndex})">✕</button>` : ''}
+    </div>
+  `).join('') : '<p style="color:var(--text2);font-size:13px">No events found.</p>';
 }
+
+function formatHour(hour){
+  const suffix = hour >= 12 ? 'PM' : 'AM';
+  const h = hour % 12 || 12;
+  return `${h} ${suffix}`;
+}
+
+function formatEventShortTime(e){
+  if(!e.start?.dateTime) return 'All day';
+  return eventStartDate(e).toLocaleTimeString('en-US', {
+    hour:'numeric',
+    minute:'2-digit'
+  });
+}
+
 function addEvent(){
   const name=document.getElementById('event-input').value.trim();
   const date=document.getElementById('event-date').value.trim();
@@ -742,47 +860,36 @@ async function initGoogleCalendar() {
     client_id: CLIENT_ID,
     scope: SCOPES,
     callback: async (tokenResponse) => {
-      if (tokenResponse && tokenResponse.access_token) {
-        localStorage.setItem(
-          "google_calendar_token",
-          JSON.stringify({
-            access_token: tokenResponse.access_token,
-            expires_at: Date.now() + ((tokenResponse.expires_in || 3600) * 1000)
-          })
-        );
+      if(tokenResponse && tokenResponse.access_token){
+        localStorage.setItem("google_calendar_token", JSON.stringify({
+          access_token: tokenResponse.access_token,
+          expires_at: Date.now() + ((tokenResponse.expires_in || 3600) * 1000)
+        }));
 
-        gapi.client.setToken({
-          access_token: tokenResponse.access_token
-        });
-
+        gapi.client.setToken({ access_token: tokenResponse.access_token });
         await loadGoogleEvents();
       }
     },
   });
 
-  const savedTokenRaw = localStorage.getItem("google_calendar_token");
-
-  if (savedTokenRaw) {
-    try {
-      const savedToken = JSON.parse(savedTokenRaw);
-
-      if (savedToken.access_token && savedToken.expires_at > Date.now()) {
-        gapi.client.setToken({
-          access_token: savedToken.access_token
-        });
-
+  const saved = localStorage.getItem("google_calendar_token");
+  if(saved){
+    try{
+      const token = JSON.parse(saved);
+      if(token.access_token && token.expires_at > Date.now()){
+        gapi.client.setToken({ access_token: token.access_token });
         await loadGoogleEvents();
       } else {
         localStorage.removeItem("google_calendar_token");
       }
-    } catch (e) {
+    }catch(e){
       localStorage.removeItem("google_calendar_token");
     }
   }
 }
 
 function handleAuth() {
-  if (!tokenClient) {
+  if(!tokenClient){
     alert("Google Calendar is still loading. Try again in a second.");
     return;
   }
@@ -793,76 +900,99 @@ function handleAuth() {
 }
 
 function renderCalendarFilters(calendars) {
-  const saved = JSON.parse(localStorage.getItem("selected_calendars") || "{}");
-  const names = ld('calendar_display_names',{});
+  const saved = ld("selected_calendars", {});
   const box = document.getElementById("calendar-filters");
   if (!box) return;
+
+  if(!calendars.length){
+    box.innerHTML = '<p style="color:var(--text2);font-size:13px">No Google calendars loaded yet.</p>';
+    return;
+  }
+
   box.innerHTML = calendars.map(cal => {
     const checked = saved[cal.id] !== false;
-    const displayName = names[cal.id] || cal.summary || 'Calendar';
+    const displayName = getCalendarDisplayName(cal);
+    const color = cal.backgroundColor || "#3266ad";
+
     return `
       <div class="calendar-filter-row">
-        <input type="checkbox" ${checked ? "checked" : ""} onchange="toggleCalendarFilter('${esc(cal.id)}', this.checked)" />
-        <span class="calendar-filter-color" style="background:${cal.backgroundColor || '#3266ad'}"></span>
-        <input class="inline-input" value="${esc(displayName)}" onchange="setCalendarDisplayName('${esc(cal.id)}', this.value)" title="Rename this calendar inside the dashboard" />
+        <input
+          type="checkbox"
+          ${checked ? "checked" : ""}
+          onchange="toggleCalendarFilter('${esc(cal.id)}', this.checked)"
+        />
+        <span class="calendar-color-dot" style="background:${color}"></span>
+        <input
+          class="calendar-name-input"
+          value="${esc(displayName)}"
+          onchange="setCalendarDisplayName('${esc(cal.id)}', this.value)"
+          title="Rename this calendar inside the dashboard"
+        />
       </div>
     `;
   }).join("");
 }
 
-function toggleCalendarFilter(
-  calendarId,
-  checked
-) {
-
-  const saved =
-    JSON.parse(
-      localStorage.getItem(
-        "selected_calendars"
-      ) || "{}"
-    );
-
+function toggleCalendarFilter(calendarId, checked) {
+  const saved = ld("selected_calendars", {});
   saved[calendarId] = checked;
-
-  localStorage.setItem(
-    "selected_calendars",
-    JSON.stringify(saved)
-  );
-
+  sv("selected_calendars", saved);
   loadGoogleEvents();
 }
+
 async function loadGoogleEvents() {
-  const range = calendarRange();
-  const calendarList = await gapi.client.calendar.calendarList.list();
+  const start = new Date(calendarCursor);
+  const end = new Date(calendarCursor);
 
-  window.calendars = calendarList.result.items || [];
-  const calendars = window.calendars;
-  renderCalendarFilters(calendars);
+  if(calendarView === 'month'){
+    start.setDate(1);
+    start.setHours(0,0,0,0);
+    start.setMonth(start.getMonth() - 1);
 
-  console.log("CALENDARS FOUND:", calendars.map(c => c.summary));
+    end.setDate(1);
+    end.setMonth(end.getMonth() + 2);
+    end.setHours(23,59,59,999);
+  } else {
+    const s = startOfWeek(calendarCursor);
+    start.setTime(s.getTime());
+    end.setTime(s.getTime());
+    end.setDate(end.getDate() + 7);
+  }
 
-  const saved = JSON.parse(localStorage.getItem("selected_calendars") || "{}");
+  const calendarList =
+    await gapi.client.calendar.calendarList.list();
+
+  googleCalendarsCache = calendarList.result.items || [];
+  window.calendars = googleCalendarsCache;
+
+  renderCalendarFilters(googleCalendarsCache);
+
+  const selected = ld("selected_calendars", {});
   let allEvents = [];
 
-  for (const cal of calendars) {
-    if (saved[cal.id] === false) continue;
+  for (const cal of googleCalendarsCache) {
+    if (selected[cal.id] === false) continue;
 
     try {
-      const response = await gapi.client.calendar.events.list({
-        calendarId: cal.id,
-        timeMin: range.start.toISOString(),
-        timeMax: range.end.toISOString(),
-        showDeleted: false,
-        singleEvents: true,
-        orderBy: "startTime",
-      });
+      const response =
+        await gapi.client.calendar.events.list({
+          calendarId: cal.id,
+          timeMin: start.toISOString(),
+          timeMax: end.toISOString(),
+          showDeleted: false,
+          singleEvents: true,
+          orderBy: "startTime",
+        });
 
       const calEvents = response.result.items || [];
+
       calEvents.forEach(e => {
         e.calendarColor = cal.backgroundColor || "#3266ad";
-        e.calendarName = getCalendarDisplayName(cal.id, cal.summary);
+        e.originalCalendarName = cal.summary || "Calendar";
+        e.calendarName = getCalendarDisplayName(cal);
         e.calendarId = cal.id;
       });
+
       allEvents.push(...calEvents);
 
     } catch (err) {
@@ -870,22 +1000,18 @@ async function loadGoogleEvents() {
     }
   }
 
-  allEvents.sort((a, b) => eventStartDate(a) - eventStartDate(b));
   googleEventsCache = allEvents;
   renderCalendar();
 }
 
 function formatGoogleDate(start) {
   const raw = start.dateTime || start.date;
-  const d = new Date(raw);
-  if (start.date && !start.dateTime) {
-    return d.toLocaleDateString("en-US", {month:"short", day:"numeric"});
-  }
-  return d.toLocaleString("en-US", {
+
+  return new Date(raw).toLocaleString("en-US", {
     month: "short",
     day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+    hour: start.dateTime ? "numeric" : undefined,
+    minute: start.dateTime ? "2-digit" : undefined,
   });
 }
 
