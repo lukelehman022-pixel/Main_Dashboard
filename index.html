@@ -1390,37 +1390,19 @@ renderFinChart();
 renderHealthCharts();
 renderNotes();
 renderCalendar();
-(function(){
-  const style = document.createElement("style");
-  style.textContent = `
-    .task-toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-    .task-sort-btn{font-size:12px;padding:6px 12px;border-radius:8px;border:.5px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;font-family:inherit}
-    .task-sort-btn.active{background:#3266ad;color:white;border-color:#3266ad}
-    .task-main{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
-    .task-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .task-title{font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .task-bottom-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--text2)}
-    .task-tag-pill{background:var(--bg2);border:.5px solid var(--border);padding:3px 8px;border-radius:999px;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)}
-    .completed-box{margin-top:18px;padding:10px 14px;border-radius:12px;background:var(--bg2)}
-    .completed-box .task-item{opacity:.65}
-    .task-check{width:22px;height:22px;border-radius:6px}
-  `;
-  document.head.appendChild(style);
-})();
+window.taskSortMode = localStorage.getItem("task_sort_mode") || "due";
 
-let taskSortMode = ld("task_sort_mode", "due");
-
-function setTaskSort(mode){
-  taskSortMode = mode;
-  sv("task_sort_mode", mode);
+window.setTaskSort = function(mode){
+  window.taskSortMode = mode;
+  localStorage.setItem("task_sort_mode", mode);
   renderTasks();
-}
+};
 
-function sortTasks(list){
+window.sortTasks = function(list){
   const order = { high:0, medium:1, low:2 };
   const sorted = [...list];
 
-  if(taskSortMode === "due"){
+  if(window.taskSortMode === "due"){
     sorted.sort((a,b)=>{
       if(!a.due) return 1;
       if(!b.due) return -1;
@@ -1428,133 +1410,20 @@ function sortTasks(list){
     });
   }
 
-  if(taskSortMode === "class"){
+  if(window.taskSortMode === "class"){
     sorted.sort((a,b)=>String(a.tag||"").localeCompare(String(b.tag||"")));
   }
 
-  if(taskSortMode === "priority"){
+  if(window.taskSortMode === "priority"){
     sorted.sort((a,b)=>(order[a.priority]??99)-(order[b.priority]??99));
   }
 
-  if(taskSortMode === "alphabetical"){
+  if(window.taskSortMode === "alphabetical"){
     sorted.sort((a,b)=>String(a.text||"").localeCompare(String(b.text||"")));
   }
 
   return sorted;
-}
-
-function js(v){
-  return JSON.stringify(String(v ?? ""));
-}
-
-function renderTaskRow(t){
-  const dueText = t.due && !isNaN(t.due)
-    ? t.due.toLocaleDateString("en-US",{month:"short",day:"numeric"})
-    : "No due date";
-
-  if(t.calendarTask){
-    return `
-      <div class="task-item">
-        <div class="task-check ${t.done ? "checked" : ""}" onclick="toggleCalendarTask(${js(t.id)})"></div>
-
-        <div class="task-main">
-          <div class="task-title-row">
-            <input class="inline-input task-title" value="${esc(t.text)}"
-              onchange="updateCalendarTask(${js(t.id)}, 'text', this.value)"
-              style="text-decoration:${t.done ? "line-through" : "none"};color:${t.done ? "var(--text2)" : "var(--text)"}" />
-
-            <button class="del-btn" onclick="deleteCalendarTask(${js(t.id)})">✕</button>
-          </div>
-
-          <div class="task-bottom-row">
-            <input class="task-tag-pill" value="${esc(t.tag)}"
-              onchange="updateCalendarTask(${js(t.id)}, 'tag', this.value)" />
-
-            <span>Due ${dueText}</span>
-
-            <select class="mini-input" onchange="updateCalendarTask(${js(t.id)}, 'priority', this.value)" style="width:90px">
-              <option value="low" ${t.priority === "low" ? "selected" : ""}>low</option>
-              <option value="medium" ${t.priority === "medium" ? "selected" : ""}>medium</option>
-              <option value="high" ${t.priority === "high" ? "selected" : ""}>high</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  return `
-    <div class="task-item">
-      <div class="task-check ${t.done ? "checked" : ""}" onclick="toggleTask(${t.personalIndex})"></div>
-
-      <div class="task-main">
-        <div class="task-title-row">
-          <input class="inline-input task-title" value="${esc(t.text)}"
-            onchange="updateTask(${t.personalIndex}, 'text', this.value)"
-            style="text-decoration:${t.done ? "line-through" : "none"};color:${t.done ? "var(--text2)" : "var(--text)"}" />
-
-          <button class="del-btn" onclick="deleteTask(${t.personalIndex})">✕</button>
-        </div>
-
-        <div class="task-bottom-row">
-          <span class="task-tag-pill">${esc(t.tag)}</span>
-          <span>${t.priority} priority</span>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderTasks(){
-  const calendarTasks = getCalendarTasks();
-  const personalTasks = tasks.map((t,i)=>({
-    ...t,
-    personalIndex:i,
-    calendarTask:false
-  }));
-
-  const allTasks = [...calendarTasks, ...personalTasks];
-  const activeTasks = sortTasks(allTasks.filter(t=>!t.done));
-  const completedTasks = sortTasks(allTasks.filter(t=>t.done));
-
-  document.getElementById("open-count").textContent = activeTasks.length;
-  document.getElementById("done-count").textContent = completedTasks.length;
-  document.getElementById("ov-tasks").textContent = completedTasks.length + "/" + allTasks.length;
-
-  document.getElementById("task-list").innerHTML = `
-    <div class="task-toolbar">
-      <button class="task-sort-btn ${taskSortMode==="due"?"active":""}" onclick="setTaskSort('due')">Due date</button>
-      <button class="task-sort-btn ${taskSortMode==="class"?"active":""}" onclick="setTaskSort('class')">Class</button>
-      <button class="task-sort-btn ${taskSortMode==="priority"?"active":""}" onclick="setTaskSort('priority')">Priority</button>
-      <button class="task-sort-btn ${taskSortMode==="alphabetical"?"active":""}" onclick="setTaskSort('alphabetical')">A-Z</button>
-    </div>
-
-    <div class="section-title">Active</div>
-    ${
-      activeTasks.length
-        ? activeTasks.map(renderTaskRow).join("")
-        : `<p style="color:var(--text2);font-size:13px">No active tasks.</p>`
-    }
-
-    <div class="section-title" style="margin-top:18px">Completed</div>
-    <div class="completed-box">
-      ${
-        completedTasks.length
-          ? completedTasks.map(renderTaskRow).join("")
-          : `<p style="color:var(--text2);font-size:13px">No completed tasks yet.</p>`
-      }
-    </div>
-  `;
-
-  document.getElementById("ov-task-list").innerHTML = activeTasks.slice(0,4).map(t=>`
-    <div class="task-item">
-      <div class="task-check" onclick="${t.calendarTask ? `toggleCalendarTask(${js(t.id)})` : `toggleTask(${t.personalIndex})`}"></div>
-      <div class="task-text">${esc(t.text)}</div>
-    </div>
-  `).join("");
-}
-
-renderTasks();
+};
 </script>
 </body>
 </html>
