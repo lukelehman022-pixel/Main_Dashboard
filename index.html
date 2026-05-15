@@ -95,6 +95,10 @@
   .budget-input { width: 65px; font-size: 12px; padding: 2px 6px; border: 0.5px solid var(--border2); border-radius: 4px; background: var(--bg); color: var(--text); font-family: inherit; outline: none; }
   .save-note-btn { font-size: 12px; padding: 4px 10px; border-radius: var(--radius-md); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; font-family: inherit; }
   .save-note-btn:hover { color: var(--text); }
+  .inline-input { width: 100%; font: inherit; color: var(--text); background: transparent; border: 0.5px solid transparent; border-radius: 4px; padding: 2px 4px; outline: none; }
+  .inline-input:hover, .inline-input:focus { border-color: var(--border2); background: var(--bg); }
+  .mini-input { width: 72px; font-size: 12px; padding: 2px 6px; border: 0.5px solid var(--border2); border-radius: 4px; background: var(--bg); color: var(--text); font-family: inherit; outline: none; }
+
 </style>
 </head>
 <body>
@@ -180,6 +184,7 @@
       <div class="metric"><div class="label">Monthly spend</div><div class="value" id="f-spend">$0</div><div class="sub" id="f-spend-sub"></div></div>
       <div class="metric"><div class="label">Savings rate</div><div class="value" id="f-savings">0%</div></div>
     </div>
+    <div class="card"><h3>Finance settings</h3><div class="input-row"><input type="number" id="income-input" placeholder="Monthly income" onchange="updateFinanceSetting('ld_income',this.value)" /><input type="number" id="networth-input" placeholder="Net worth" onchange="updateFinanceSetting('ld_networth',this.value)" /></div></div>
     <div class="card"><h3>Income vs spending — last 6 months</h3>
       <div class="legend"><span><span class="legend-sq" style="background:#3266ad"></span>Income</span><span><span class="legend-sq" style="background:rgba(216,90,48,0.7)"></span>Spending</span></div>
       <div class="chart-wrap" style="height:200px"><canvas id="finChart"></canvas></div>
@@ -256,14 +261,15 @@
 // ── STORAGE ──────────────────────────────────────────────────────
 function ld(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
 function sv(k,v){localStorage.setItem(k,JSON.stringify(v));}
+function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 // ── DATA ─────────────────────────────────────────────────────────
-let tasks    =ld('ld_tasks',   [{text:'Review Q2 report',done:false,tag:'Work',priority:'high'},{text:'Grocery run',done:false,tag:'Personal',priority:'medium'},{text:'Evening walk',done:false,tag:'Health',priority:'medium'}]);
-let goals    =ld('ld_goals',   [{text:'Run 5K under 25 min',progress:72,deadline:'Jun 30'},{text:'Save $15,000',progress:54,deadline:'Dec 31'},{text:'Read 20 books',progress:40,deadline:'Dec 31'},{text:'Ship side project v1',progress:88,deadline:'May 31'}]);
-let habits   =ld('ld_habits',  [{name:'Morning workout',days:[1,1,1,0,1,1,0]},{name:'Read 30 min',days:[1,1,0,1,1,1,1]},{name:'Meditate',days:[1,0,1,1,0,1,1]},{name:'No alcohol',days:[1,1,1,1,1,1,1]},{name:'Journal',days:[1,1,0,0,1,1,0]}]);
-let notes    =ld('ld_notes',   [{title:'Q3 planning ideas',body:'Focus on three key areas: shipping the redesign, growing the audience, and improving onboarding.',date:'May 13'},{title:'Book recs from Sam',body:'Four Thousand Weeks, Thinking Fast and Slow, The Creative Act.',date:'May 10'}]);
-let events   =ld('ld_events',  [{name:'Team standup',date:'May 14',color:'#3266ad'},{name:'Dentist',date:'May 16',color:'#D85A30'},{name:'Book club',date:'May 28',color:'#7F77DD'}]);
-let budget   =ld('ld_budget',  [{cat:'Housing',budget:1600,actual:1600},{cat:'Food',budget:500,actual:620},{cat:'Transport',budget:250,actual:310},{cat:'Entertainment',budget:200,actual:180},{cat:'Health',budget:150,actual:140},{cat:'Misc',budget:200,actual:290}]);
+let tasks    =ld('ld_tasks',   []);
+let goals    =ld('ld_goals',   []);
+let habits   =ld('ld_habits',  []);
+let notes    =ld('ld_notes',   []);
+let events   =ld('ld_events',  []);
+let budget   =ld('ld_budget',  []);
 let txs      =ld('ld_txs',     []);
 let healthLog=ld('ld_health',  []);
 
@@ -284,15 +290,15 @@ function renderTasks(){
   document.getElementById('open-count').textContent=tasks.filter(t=>!t.done).length;
   document.getElementById('done-count').textContent=done;
   document.getElementById('ov-tasks').textContent=done+'/'+tasks.length;
-  document.getElementById('task-list').innerHTML=tasks.map((t,i)=>`
+  document.getElementById('task-list').innerHTML=tasks.length?tasks.map((t,i)=>`
     <div class="task-item">
       <div class="task-check ${t.done?'checked':''}" onclick="toggleTask(${i})"></div>
       <div class="task-text">
-        <div style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}">${t.text}</div>
+        <input class="inline-input" value="${esc(t.text)}" onchange="updateTask(${i},'text',this.value)" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}" />
         <div class="task-meta">${t.tag} · ${t.priority} priority</div>
       </div>
       <button class="del-btn" onclick="deleteTask(${i})">✕</button>
-    </div>`).join('');
+    </div>`).join(''):'<p style="color:var(--text2);font-size:13px">No tasks yet.</p>';
   document.getElementById('ov-task-list').innerHTML=tasks.slice(0,4).map((t,i)=>`
     <div class="task-item">
       <div class="task-check ${t.done?'checked':''}" onclick="toggleTask(${i})"></div>
@@ -301,6 +307,7 @@ function renderTasks(){
     </div>`).join('');
 }
 function toggleTask(i){tasks[i].done=!tasks[i].done;sv('ld_tasks',tasks);renderTasks();}
+function updateTask(i,f,v){tasks[i][f]=v;sv('ld_tasks',tasks);renderTasks();}
 function deleteTask(i){tasks.splice(i,1);sv('ld_tasks',tasks);renderTasks();}
 function addTask(){
   const inp=document.getElementById('task-input');
@@ -315,21 +322,20 @@ function renderGoals(){
   document.getElementById('goals-on-track').textContent=onTrack+'/'+goals.length;
   document.getElementById('goal-list').innerHTML=goals.map((g,i)=>`
     <div style="padding:10px 0;border-bottom:0.5px solid var(--border)">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;gap:8px">
-        <span>${g.text}</span>
-        <span style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-          <span style="color:var(--text2)">${g.progress}% · ${g.deadline}</span>
-          <button class="del-btn" onclick="deleteGoal(${i})">✕</button>
-        </span>
+      <div style="display:grid;grid-template-columns:1fr 88px 92px 24px;gap:8px;align-items:center;margin-bottom:6px;font-size:13px">
+        <input class="inline-input" value="${esc(g.text)}" onchange="updateGoal(${i},'text',this.value)" />
+        <input class="mini-input" type="number" min="0" max="100" value="${g.progress}" onchange="updateGoal(${i},'progress',this.value)" />
+        <input class="mini-input" value="${esc(g.deadline)}" onchange="updateGoal(${i},'deadline',this.value)" />
+        <button class="del-btn" onclick="deleteGoal(${i})">✕</button>
       </div>
-      <div class="progress-bar" title="Click to update" style="cursor:pointer" onclick="updateGoalProgress(${i})">
+      <div class="progress-bar">
         <div class="progress-fill" style="width:${g.progress}%;background:${g.progress>=75?'#1D9E75':g.progress>=40?'#EF9F27':'#D85A30'}"></div>
       </div>
     </div>`).join('');
 }
-function addGoal(){const t=prompt('Goal name?');if(!t)return;const d=prompt('Deadline?');goals.push({text:t,progress:0,deadline:d||'—'});sv('ld_goals',goals);renderGoals();}
+function addGoal(){goals.push({text:'New goal',progress:0,deadline:'—'});sv('ld_goals',goals);renderGoals();}
 function deleteGoal(i){if(!confirm('Delete?'))return;goals.splice(i,1);sv('ld_goals',goals);renderGoals();}
-function updateGoalProgress(i){const v=prompt('Progress 0–100?',goals[i].progress);if(v===null)return;goals[i].progress=Math.min(100,Math.max(0,parseInt(v)||0));sv('ld_goals',goals);renderGoals();}
+function updateGoal(i,f,v){goals[i][f]=f==='progress'?Math.min(100,Math.max(0,parseInt(v)||0)):v;sv('ld_goals',goals);renderGoals();}
 
 // ── HABITS ───────────────────────────────────────────────────────
 function renderHabits(){
@@ -346,7 +352,7 @@ function renderHabits(){
   document.getElementById('ov-streak').textContent=avg+' days';
   document.getElementById('habit-tracker').innerHTML=habits.map((h,hi)=>`
     <div class="habit-row">
-      <span class="habit-name">${h.name}</span>
+      <input class="inline-input habit-name" value="${esc(h.name)}" onchange="updateHabitName(${hi},this.value)" />
       <div class="dots">${h.days.map((d,di)=>`<div class="dot ${d?'done':'miss'}" onclick="toggleHabitDay(${hi},${di})"></div>`).join('')}</div>
       <span style="font-size:12px;color:var(--text2);margin-left:8px;min-width:28px">${Math.round(h.days.filter(Boolean).length/7*100)}%</span>
       <button class="del-btn" onclick="deleteHabit(${hi})">✕</button>
@@ -354,6 +360,7 @@ function renderHabits(){
   renderHabitChart();
 }
 function toggleHabitDay(h,d){habits[h].days[d]=habits[h].days[d]?0:1;sv('ld_habits',habits);renderHabits();}
+function updateHabitName(i,v){habits[i].name=v;sv('ld_habits',habits);renderHabits();}
 function addHabit(){const n=prompt('Habit name?');if(!n)return;habits.push({name:n,days:[0,0,0,0,0,0,0]});sv('ld_habits',habits);renderHabits();}
 function deleteHabit(i){if(!confirm('Delete?'))return;habits.splice(i,1);sv('ld_habits',habits);renderHabits();}
 
@@ -367,8 +374,8 @@ function renderHealth(){
   document.getElementById('h-active').textContent=healthLog.slice(-7).filter(e=>e.steps&&e.steps>=5000).length+'/7';
   document.getElementById('health-log').innerHTML=healthLog.slice().reverse().slice(0,7).map((e,i)=>`
     <div class="row-item">
-      <span class="rname">${e.date}</span>
-      <span class="rval">${[e.steps&&e.steps.toLocaleString()+' steps',e.sleep&&e.sleep+'h sleep',e.hr&&e.hr+' bpm',e.note].filter(Boolean).join(' · ')}</span>
+      <input class="mini-input" value="${esc(e.date)}" onchange="updateHealth(${healthLog.length-1-i},'date',this.value)" />
+      <span class="rval" style="display:flex;gap:6px;flex-wrap:wrap"><input class="mini-input" type="number" value="${e.steps||''}" placeholder="Steps" onchange="updateHealth(${healthLog.length-1-i},'steps',this.value)" /><input class="mini-input" type="number" step="0.5" value="${e.sleep||''}" placeholder="Sleep" onchange="updateHealth(${healthLog.length-1-i},'sleep',this.value)" /><input class="mini-input" type="number" value="${e.hr||''}" placeholder="HR" onchange="updateHealth(${healthLog.length-1-i},'hr',this.value)" /><input class="inline-input" value="${esc(e.note||'')}" placeholder="Note" onchange="updateHealth(${healthLog.length-1-i},'note',this.value)" /></span>
       <button class="del-btn" onclick="deleteHealth(${healthLog.length-1-i})">✕</button>
     </div>`).join('');
 }
@@ -384,14 +391,15 @@ function logHealth(){
   ['h-steps-input','h-sleep-input','h-hr-input','h-note-input'].forEach(id=>document.getElementById(id).value='');
   renderHealth();renderHealthCharts();
 }
+function updateHealth(i,f,v){healthLog[i][f]=['steps','sleep','hr'].includes(f)?(parseFloat(v)||null):v;sv('ld_health',healthLog);renderHealth();renderHealthCharts();}
 function deleteHealth(i){healthLog.splice(i,1);sv('ld_health',healthLog);renderHealth();renderHealthCharts();}
 
 // ── FINANCE ──────────────────────────────────────────────────────
 function renderFinance(){
   const totalSpend=budget.reduce((s,b)=>s+b.actual,0);
   const totalBudget=budget.reduce((s,b)=>s+b.budget,0);
-  const income=parseInt(ld('ld_income',5800));
-  const networth=parseInt(ld('ld_networth',48200));
+  const income=parseInt(ld('ld_income',0));
+  const networth=parseInt(ld('ld_networth',0));
   document.getElementById('f-networth').textContent='$'+networth.toLocaleString();
   document.getElementById('f-income').textContent='$'+income.toLocaleString();
   document.getElementById('f-spend').textContent='$'+totalSpend.toLocaleString();
@@ -401,15 +409,17 @@ function renderFinance(){
   sub.textContent=(diff>0?'+$'+diff+' over budget':'$'+Math.abs(diff)+' under budget');
   sub.className=diff>0?'sub down':'sub up';
   document.getElementById('ov-spend-sub').textContent=sub.textContent;
-  document.getElementById('f-savings').textContent=Math.round((income-totalSpend)/income*100)+'%';
-  document.getElementById('tx-cat').innerHTML=budget.map(b=>`<option>${b.cat}</option>`).join('');
+  document.getElementById('f-savings').textContent=income?Math.round((income-totalSpend)/income*100)+'%':'0%';
+  document.getElementById('tx-cat').innerHTML=budget.map(b=>`<option>${esc(b.cat)}</option>`).join('');
+  const incInp=document.getElementById('income-input'); if(incInp) incInp.value=income||'';
+  const nwInp=document.getElementById('networth-input'); if(nwInp) nwInp.value=networth||'';
   const colors=['#3266ad','#1D9E75','#EF9F27','#D85A30','#7F77DD','#a09e9a'];
   document.getElementById('spend-legend').innerHTML=budget.map((b,i)=>`<span><span class="legend-sq" style="background:${colors[i%colors.length]}"></span>${b.cat} ${totalSpend?Math.round(b.actual/totalSpend*100):0}%</span>`).join('');
   document.getElementById('budget-rows').innerHTML=budget.map((b,i)=>{
     const over=b.actual>b.budget;
     return `<div style="padding:10px 0;border-bottom:0.5px solid var(--border)">
       <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;gap:8px;flex-wrap:wrap">
-        <span>${b.cat}</span>
+        <input class="inline-input" value="${esc(b.cat)}" onchange="updateBudget(${i},'cat',this.value)" style="max-width:160px" />
         <span style="display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap">
           <span style="color:${over?'#D85A30':'#1D9E75'}">${over?'+':'−'}$${Math.abs(b.actual-b.budget)}</span>
           <span style="color:var(--text2);font-size:12px">$<input class="budget-input" value="${b.actual}" onchange="updateBudget(${i},'actual',this.value)" /> / $<input class="budget-input" value="${b.budget}" onchange="updateBudget(${i},'budget',this.value)" /></span>
@@ -420,7 +430,8 @@ function renderFinance(){
     </div>`;}).join('');
   renderTxList();
 }
-function updateBudget(i,f,v){budget[i][f]=parseFloat(v)||0;sv('ld_budget',budget);renderFinance();renderSpendChart();}
+function updateBudget(i,f,v){budget[i][f]=f==='cat'?v:(parseFloat(v)||0);sv('ld_budget',budget);renderFinance();renderSpendChart();}
+function updateFinanceSetting(k,v){sv(k,parseFloat(v)||0);renderFinance();renderFinChart();}
 function addBudgetCat(){const n=prompt('Category name?');if(!n)return;budget.push({cat:n,budget:0,actual:0});sv('ld_budget',budget);renderFinance();}
 function deleteBudgetCat(i){if(!confirm('Delete?'))return;budget.splice(i,1);sv('ld_budget',budget);renderFinance();}
 function addTransaction(){
@@ -482,7 +493,7 @@ function renderCalendar(){
   document.getElementById('event-list').innerHTML=events.map((e,i)=>`
     <div class="event-item">
       <div class="event-dot" style="background:${e.color}"></div>
-      <div style="flex:1"><div style="font-size:13px">${e.name}</div><div style="font-size:11px;color:var(--text2)">${e.date}</div></div>
+      <div style="flex:1;display:grid;grid-template-columns:1fr 90px;gap:6px"><input class="inline-input" value="${esc(e.name)}" onchange="updateEvent(${i},'name',this.value)" /><input class="mini-input" value="${esc(e.date)}" onchange="updateEvent(${i},'date',this.value)" /></div>
       <button class="del-btn" onclick="deleteEvent(${i})">✕</button>
     </div>`).join('');
 }
@@ -495,6 +506,7 @@ function addEvent(){
   document.getElementById('event-input').value='';document.getElementById('event-date').value='';
   renderCalendar();
 }
+function updateEvent(i,f,v){events[i][f]=v;sv('ld_events',events);renderCalendar();}
 function deleteEvent(i){events.splice(i,1);sv('ld_events',events);renderCalendar();}
 
 // ── CHARTS ──────────────────────────────────────────────────────
@@ -530,10 +542,10 @@ function renderHealthCharts(){
 }
 
 function renderFinChart(){
-  const income=parseInt(ld('ld_income',5800));
+  const income=parseInt(ld('ld_income',0));
   const totalSpend=budget.reduce((s,b)=>s+b.actual,0);
   if(fnChart)fnChart.destroy();
-  fnChart=new Chart(document.getElementById('finChart'),{type:'bar',data:{labels:['Dec','Jan','Feb','Mar','Apr','May'],datasets:[{label:'Income',data:[5800,5800,6100,5800,5800,income],backgroundColor:'#3266ad',borderRadius:3},{label:'Spending',data:[2800,3100,2600,2900,2400,totalSpend],backgroundColor:'rgba(216,90,48,0.7)',borderRadius:3}]},options:{...cd,scales:{y:{ticks:{color:tC,callback:v=>'$'+v},grid:{color:gC}},x:{ticks:{color:tC},grid:{display:false}}}}});
+  fnChart=new Chart(document.getElementById('finChart'),{type:'bar',data:{labels:['Dec','Jan','Feb','Mar','Apr','May'],datasets:[{label:'Income',data:[0,0,0,0,0,income],backgroundColor:'#3266ad',borderRadius:3},{label:'Spending',data:[0,0,0,0,0,totalSpend],backgroundColor:'rgba(216,90,48,0.7)',borderRadius:3}]},options:{...cd,scales:{y:{ticks:{color:tC,callback:v=>'$'+v},grid:{color:gC}},x:{ticks:{color:tC},grid:{display:false}}}}});
 }
 
 // ── INIT ─────────────────────────────────────────────────────────
@@ -548,5 +560,7 @@ renderHealthCharts();
 renderNotes();
 renderCalendar();
 </script>
+</body>
+</html>
 </body>
 </html>
