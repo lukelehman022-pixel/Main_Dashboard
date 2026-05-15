@@ -142,6 +142,12 @@
   .task-row-completed { opacity:0.65; }
   .calendar-role-select { font-size:12px; padding:4px 6px; border:0.5px solid var(--border2); border-radius:5px; background:var(--bg); color:var(--text); font-family:inherit; outline:none; }
 
+  .global-week-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:-0.5rem 0 1.25rem; padding:10px 12px; background:var(--bg); border:0.5px solid var(--border); border-radius:var(--radius-lg); }
+  .global-week-left, .global-week-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .global-week-label { font-size:13px; color:var(--text2); }
+  .global-week-title { font-size:15px; font-weight:500; }
+  @media(max-width:600px){ .global-week-toolbar{align-items:flex-start;flex-direction:column} }
+
 </style>
 </head>
 <body>
@@ -155,6 +161,18 @@
     <button onclick="switchTab('habits',this)"><i class="ti ti-repeat"></i> Habits</button>
     <button onclick="switchTab('notes',this)"><i class="ti ti-notes"></i> Notes</button>
     <button onclick="switchTab('calendar',this)"><i class="ti ti-calendar"></i> Calendar</button>
+  </div>
+
+  <div class="global-week-toolbar" id="global-week-toolbar">
+    <div class="global-week-left">
+      <button class="cal-btn" onclick="changeAppWeek(-1)">‹</button>
+      <button class="cal-btn" onclick="appWeekToday()">This week</button>
+      <button class="cal-btn" onclick="changeAppWeek(1)">›</button>
+    </div>
+    <div>
+      <div class="global-week-label">Selected week</div>
+      <div class="global-week-title" id="global-week-title">This week</div>
+    </div>
   </div>
 
   <!-- OVERVIEW -->
@@ -349,7 +367,7 @@ let googleCalendarsCache = [];
 let calendarView = ld('calendar_view', 'month');
 let calendarCursor = new Date();
 let taskSortMode = ld('task_sort_mode', 'due');
-let taskClassFilter = ld('task_class_filter', 'all');
+let appWeekCursor = new Date(ld('app_week_cursor', new Date().toISOString()));
 
 // ── TAB ──────────────────────────────────────────────────────────
 function switchTab(id,btn){
@@ -357,10 +375,70 @@ function switchTab(id,btn){
   document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
   btn.classList.add('active');
+  renderGlobalWeekToolbar(id);
+  refreshCurrentTab(id);
+}
+
+function getActiveTabId(){
+  const active = document.querySelector('.tab.active');
+  return active ? active.id.replace('tab-','') : 'overview';
+}
+
+function refreshCurrentTab(id=getActiveTabId()){
+  renderGlobalWeekToolbar(id);
   if(id==='overview'){renderTasks();renderHabits();renderFinance();renderSpendChart();}
   if(id==='tasks'){renderTasks();renderGoals();}
-  if(id==='health') renderHealthCharts();
+  if(id==='health'){renderHealth();renderHealthCharts();}
   if(id==='finance'){renderFinance();renderFinChart();}
+  if(id==='habits'){renderHabits();}
+  if(id==='calendar'){calendarCursor = new Date(appWeekCursor); renderCalendar(); if(gapi?.client?.getToken?.()) loadGoogleEvents();}
+}
+
+function selectedWeekStart(){
+  const d = new Date(appWeekCursor);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+function selectedWeekEnd(){
+  const d = selectedWeekStart();
+  d.setDate(d.getDate() + 7);
+  return d;
+}
+
+function isInSelectedWeek(date){
+  if(!date || isNaN(date)) return false;
+  return date >= selectedWeekStart() && date < selectedWeekEnd();
+}
+
+function formatSelectedWeek(){
+  const start = selectedWeekStart();
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return `${start.toLocaleDateString('en-US',{month:'short',day:'numeric'})} - ${end.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+}
+
+function renderGlobalWeekToolbar(activeTab=getActiveTabId()){
+  const bar = document.getElementById('global-week-toolbar');
+  const title = document.getElementById('global-week-title');
+  if(!bar || !title) return;
+  bar.style.display = activeTab === 'notes' ? 'none' : 'flex';
+  title.textContent = formatSelectedWeek();
+}
+
+function changeAppWeek(delta){
+  appWeekCursor.setDate(appWeekCursor.getDate() + delta * 7);
+  sv('app_week_cursor', appWeekCursor.toISOString());
+  calendarCursor = new Date(appWeekCursor);
+  refreshCurrentTab();
+}
+
+function appWeekToday(){
+  appWeekCursor = new Date();
+  sv('app_week_cursor', appWeekCursor.toISOString());
+  calendarCursor = new Date(appWeekCursor);
+  refreshCurrentTab();
 }
 
 // ── TASKS ────────────────────────────────────────────────────────
@@ -433,11 +511,6 @@ function setTaskSort(mode){
   renderTasks();
 }
 
-function setTaskClassFilter(value){
-  taskClassFilter = value;
-  sv('task_class_filter', value);
-  renderTasks();
-}
 
 function sortTasks(list){
   const order = { high:0, medium:1, low:2 };
@@ -514,22 +587,14 @@ function renderTasks(){
   const personalTasks = getPersonalTasksForRender();
   let allTasks = [...calendarTasks, ...personalTasks];
 
-  const classes = Array.from(new Set(allTasks.map(t => t.tag || 'Other'))).sort();
-
-  if(taskClassFilter !== 'all'){
-    allTasks = allTasks.filter(t => (t.tag || 'Other') === taskClassFilter);
-  }
+  allTasks = allTasks.filter(t => !t.due || isInSelectedWeek(t.due));
 
   const activeTasks = sortTasks(allTasks.filter(t => !t.done));
   const completedTasks = sortTasks(allTasks.filter(t => t.done));
-  const totalUnfiltered = calendarTasks.length + personalTasks.length;
-  const doneUnfiltered = calendarTasks.filter(t=>t.done).length + personalTasks.filter(t=>t.done).length;
 
   document.getElementById('open-count').textContent = activeTasks.length;
   document.getElementById('done-count').textContent = completedTasks.length;
-  document.getElementById('ov-tasks').textContent = doneUnfiltered + '/' + totalUnfiltered;
-
-  const classOptions = classes.map(c => `<option value="${esc(c)}" ${taskClassFilter === c ? 'selected' : ''}>${esc(c)}</option>`).join('');
+  document.getElementById('ov-tasks').textContent = completedTasks.length + '/' + allTasks.length;
 
   document.getElementById('task-list').innerHTML = `
     <div class="task-toolbar">
@@ -537,10 +602,6 @@ function renderTasks(){
       <button class="cal-btn ${taskSortMode === 'class' ? 'active' : ''}" onclick="setTaskSort('class')">Class</button>
       <button class="cal-btn ${taskSortMode === 'priority' ? 'active' : ''}" onclick="setTaskSort('priority')">Priority</button>
       <button class="cal-btn ${taskSortMode === 'alphabetical' ? 'active' : ''}" onclick="setTaskSort('alphabetical')">A-Z</button>
-      <select class="task-filter-select" onchange="setTaskClassFilter(this.value)">
-        <option value="all" ${taskClassFilter === 'all' ? 'selected' : ''}>All classes</option>
-        ${classOptions}
-      </select>
     </div>
 
     <div class="section-title">Active</div>
@@ -803,6 +864,9 @@ function startOfWeek(date){
 
 function calendarToday(){
   calendarCursor = new Date();
+  appWeekCursor = new Date(calendarCursor);
+  sv('app_week_cursor', appWeekCursor.toISOString());
+  renderGlobalWeekToolbar();
   renderCalendar();
   if(gapi?.client?.getToken?.()) loadGoogleEvents();
 }
@@ -810,6 +874,9 @@ function calendarToday(){
 function calendarPrev(){
   if(calendarView === 'month') calendarCursor.setMonth(calendarCursor.getMonth() - 1);
   else calendarCursor.setDate(calendarCursor.getDate() - 7);
+  appWeekCursor = new Date(calendarCursor);
+  sv('app_week_cursor', appWeekCursor.toISOString());
+  renderGlobalWeekToolbar();
   renderCalendar();
   if(gapi?.client?.getToken?.()) loadGoogleEvents();
 }
@@ -817,6 +884,9 @@ function calendarPrev(){
 function calendarNext(){
   if(calendarView === 'month') calendarCursor.setMonth(calendarCursor.getMonth() + 1);
   else calendarCursor.setDate(calendarCursor.getDate() + 7);
+  appWeekCursor = new Date(calendarCursor);
+  sv('app_week_cursor', appWeekCursor.toISOString());
+  renderGlobalWeekToolbar();
   renderCalendar();
   if(gapi?.client?.getToken?.()) loadGoogleEvents();
 }
@@ -1247,6 +1317,7 @@ if (shell) {
 
 }
 // ── INIT ─────────────────────────────────────────────────────────
+renderGlobalWeekToolbar('overview');
 renderTasks();
 renderGoals();
 renderHabits();
