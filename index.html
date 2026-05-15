@@ -1391,6 +1391,68 @@ renderHealthCharts();
 renderNotes();
 renderCalendar();
 window.taskSortMode = localStorage.getItem("task_sort_mode") || "due";
+window.taskClassFilter = localStorage.getItem("task_class_filter") || "all";
+
+window.safeJson = function(v){
+  return JSON.stringify(String(v ?? ""));
+};
+
+window.getCalendarTaskId = function(e){
+  return String(
+    e.id ||
+    `${e.calendarId || "calendar"}-${e.summary || "task"}-${e.start?.dateTime || e.start?.date || ""}`
+  );
+};
+
+window.getCalendarTasks = function(){
+  var roles = ld("calendar_roles", {});
+  var completed = ld("calendar_task_done", {});
+  var edits = ld("calendar_task_edits", {});
+  var removed = ld("calendar_task_removed", {});
+
+  return googleEventsCache
+    .filter(function(e){
+      return roles[e.calendarId] === "tasks";
+    })
+    .map(function(e){
+      var id = window.getCalendarTaskId(e);
+      var edited = edits[id] || {};
+
+      return {
+        id: id,
+        text: edited.text || e.summary || "Calendar task",
+        tag: edited.tag || e.calendarName || e.originalCalendarName || "Calendar",
+        priority: edited.priority || "medium",
+        due: eventStartDate(e),
+        done: completed[id] === true,
+        calendarTask: true
+      };
+    })
+    .filter(function(t){
+      return removed[t.id] !== true;
+    });
+};
+
+window.toggleCalendarTask = function(id){
+  var completed = ld("calendar_task_done", {});
+  completed[id] = !completed[id];
+  sv("calendar_task_done", completed);
+  renderTasks();
+};
+
+window.updateCalendarTask = function(id, field, value){
+  var edits = ld("calendar_task_edits", {});
+  edits[id] = edits[id] || {};
+  edits[id][field] = value;
+  sv("calendar_task_edits", edits);
+};
+
+window.deleteCalendarTask = function(id){
+  var removed = ld("calendar_task_removed", {});
+  removed[id] = true;
+  sv("calendar_task_removed", removed);
+  renderTasks();
+};
 
 window.setTaskSort = function(mode){
   window.taskSortMode = mode;
@@ -1398,12 +1460,18 @@ window.setTaskSort = function(mode){
   renderTasks();
 };
 
+window.setTaskClassFilter = function(value){
+  window.taskClassFilter = value;
+  localStorage.setItem("task_class_filter", value);
+  renderTasks();
+};
+
 window.sortTasks = function(list){
-  const order = { high:0, medium:1, low:2 };
-  const sorted = [...list];
+  var order = { high: 0, medium: 1, low: 2 };
+  var sorted = list.slice();
 
   if(window.taskSortMode === "due"){
-    sorted.sort((a,b)=>{
+    sorted.sort(function(a,b){
       if(!a.due) return 1;
       if(!b.due) return -1;
       return a.due - b.due;
@@ -1411,19 +1479,151 @@ window.sortTasks = function(list){
   }
 
   if(window.taskSortMode === "class"){
-    sorted.sort((a,b)=>String(a.tag||"").localeCompare(String(b.tag||"")));
+    sorted.sort(function(a,b){
+      return String(a.tag || "").localeCompare(String(b.tag || ""));
+    });
   }
 
   if(window.taskSortMode === "priority"){
-    sorted.sort((a,b)=>(order[a.priority]??99)-(order[b.priority]??99));
+    sorted.sort(function(a,b){
+      return (order[a.priority] ?? 99) - (order[b.priority] ?? 99);
+    });
   }
 
   if(window.taskSortMode === "alphabetical"){
-    sorted.sort((a,b)=>String(a.text||"").localeCompare(String(b.text||"")));
+    sorted.sort(function(a,b){
+      return String(a.text || "").localeCompare(String(b.text || ""));
+    });
   }
 
   return sorted;
 };
+
+window.renderTaskRow = function(t){
+  var dueText = t.due && !isNaN(t.due)
+    ? t.due.toLocaleDateString("en-US",{month:"short",day:"numeric"})
+    : "No due date";
+
+  if(t.calendarTask){
+    return `
+      <div class="task-item">
+        <div class="task-check ${t.done ? "checked" : ""}" onclick="window.toggleCalendarTask(${window.safeJson(t.id)})"></div>
+
+        <div class="task-text">
+          <input class="inline-input" value="${esc(t.text)}"
+            onchange="window.updateCalendarTask(${window.safeJson(t.id)}, 'text', this.value)"
+            style="font-weight:500;text-decoration:${t.done ? "line-through" : "none"};color:${t.done ? "var(--text2)" : "var(--text)"}" />
+
+          <div class="task-meta">
+            <input class="inline-input" value="${esc(t.tag)}"
+              onchange="window.updateCalendarTask(${window.safeJson(t.id)}, 'tag', this.value)"
+              style="max-width:240px;font-size:11px;color:var(--text2);padding:0 3px" />
+
+            · Due ${dueText} ·
+
+            <select class="mini-input" onchange="window.updateCalendarTask(${window.safeJson(t.id)}, 'priority', this.value); renderTasks();" style="width:90px">
+              <option value="low" ${t.priority === "low" ? "selected" : ""}>low</option>
+              <option value="medium" ${t.priority === "medium" ? "selected" : ""}>medium</option>
+              <option value="high" ${t.priority === "high" ? "selected" : ""}>high</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="del-btn" onclick="window.deleteCalendarTask(${window.safeJson(t.id)})">✕</button>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="task-item">
+      <div class="task-check ${t.done ? "checked" : ""}" onclick="toggleTask(${t.personalIndex})"></div>
+
+      <div class="task-text">
+        <input class="inline-input" value="${esc(t.text)}"
+          onchange="updateTask(${t.personalIndex}, 'text', this.value)"
+          style="font-weight:500;text-decoration:${t.done ? "line-through" : "none"};color:${t.done ? "var(--text2)" : "var(--text)"}" />
+
+        <div class="task-meta">${esc(t.tag)} · ${t.priority} priority</div>
+      </div>
+
+      <button class="del-btn" onclick="deleteTask(${t.personalIndex})">✕</button>
+    </div>
+  `;
+};
+
+window.renderTasks = function(){
+  var calendarTasks = window.getCalendarTasks();
+
+  var personalTasks = tasks.map(function(t,i){
+    return {
+      ...t,
+      personalIndex: i,
+      calendarTask: false
+    };
+  });
+
+  var allTasks = calendarTasks.concat(personalTasks);
+
+  var classes = Array.from(new Set(
+    allTasks.map(function(t){ return t.tag || "Other"; })
+  )).sort();
+
+  if(window.taskClassFilter !== "all"){
+    allTasks = allTasks.filter(function(t){
+      return (t.tag || "Other") === window.taskClassFilter;
+    });
+  }
+
+  var activeTasks = window.sortTasks(allTasks.filter(function(t){ return !t.done; }));
+  var completedTasks = window.sortTasks(allTasks.filter(function(t){ return t.done; }));
+
+  document.getElementById("open-count").textContent = activeTasks.length;
+  document.getElementById("done-count").textContent = completedTasks.length;
+  document.getElementById("ov-tasks").textContent = completedTasks.length + "/" + allTasks.length;
+
+  document.getElementById("task-list").innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+      <button class="cal-btn ${window.taskSortMode === "due" ? "active" : ""}" onclick="window.setTaskSort('due')">Due date</button>
+      <button class="cal-btn ${window.taskSortMode === "class" ? "active" : ""}" onclick="window.setTaskSort('class')">Class</button>
+      <button class="cal-btn ${window.taskSortMode === "priority" ? "active" : ""}" onclick="window.setTaskSort('priority')">Priority</button>
+      <button class="cal-btn ${window.taskSortMode === "alphabetical" ? "active" : ""}" onclick="window.setTaskSort('alphabetical')">A-Z</button>
+
+      <select class="mini-input" onchange="window.setTaskClassFilter(this.value)" style="width:180px">
+        <option value="all" ${window.taskClassFilter === "all" ? "selected" : ""}>All classes</option>
+        ${classes.map(function(c){
+          return `<option value="${esc(c)}" ${window.taskClassFilter === c ? "selected" : ""}>${esc(c)}</option>`;
+        }).join("")}
+      </select>
+    </div>
+
+    <div class="section-title">Active</div>
+    ${
+      activeTasks.length
+        ? activeTasks.map(window.renderTaskRow).join("")
+        : `<p style="color:var(--text2);font-size:13px">No active tasks.</p>`
+    }
+
+    <div class="section-title" style="margin-top:18px">Completed</div>
+    <div style="background:var(--bg2);border-radius:var(--radius-md);padding:8px 10px">
+      ${
+        completedTasks.length
+          ? completedTasks.map(window.renderTaskRow).join("")
+          : `<p style="color:var(--text2);font-size:13px">No completed tasks yet.</p>`
+      }
+    </div>
+  `;
+
+  document.getElementById("ov-task-list").innerHTML = activeTasks.slice(0,4).map(function(t){
+    return `
+      <div class="task-item">
+        <div class="task-check ${t.done ? "checked" : ""}" onclick="${t.calendarTask ? `window.toggleCalendarTask(${window.safeJson(t.id)})` : `toggleTask(${t.personalIndex})`}"></div>
+        <div class="task-text">${esc(t.text)}</div>
+      </div>
+    `;
+  }).join("");
+};
+
+renderTasks();
 </script>
 </body>
 </html>
