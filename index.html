@@ -600,7 +600,7 @@ async function loadGoogleEvents() {
     await gapi.client.calendar.calendarList.list();
 
   const calendars = calendarList.result.items || [];
-
+  console.log("CALENDARS FOUND:", calendars.map(c => c.summary));
   let allEvents = [];
 
   for (const cal of calendars) {
