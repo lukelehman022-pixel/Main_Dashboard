@@ -585,9 +585,7 @@ function renderTaskRow(t){
 function renderTasks(){
   const calendarTasks = getCalendarTasks();
   const personalTasks = getPersonalTasksForRender();
-  let allTasks = [...calendarTasks, ...personalTasks];
-
-  allTasks = allTasks.filter(t => !t.due || isInSelectedWeek(t.due));
+  const allTasks = [...calendarTasks, ...personalTasks];
 
   const activeTasks = sortTasks(allTasks.filter(t => !t.done));
   const completedTasks = sortTasks(allTasks.filter(t => t.done));
@@ -620,7 +618,6 @@ function renderTasks(){
       <span class="badge ${t.priority==='high'?'red':t.priority==='medium'?'amber':'blue'}">${t.priority}</span>
     </div>`).join('');
 }
-
 function toggleTask(i){tasks[i].done=!tasks[i].done;sv('ld_tasks',tasks);renderTasks();}
 function updateTask(i,f,v){tasks[i][f]=v;sv('ld_tasks',tasks);renderTasks();}
 function deleteTask(i){tasks.splice(i,1);sv('ld_tasks',tasks);renderTasks();}
