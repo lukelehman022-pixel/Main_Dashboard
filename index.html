@@ -243,7 +243,7 @@
       
 <div class="card">
   <h3>Calendar filters</h3>
-  <div id="calendar-filters"></div>
+  <div id="calendar-filters"><p style="color:var(--text2);font-size:13px">Connect Google Calendar to choose which calendars show.</p></div>
 </div>
 
 <div class="card"><h3>Events</h3><div id="event-list"></div></div>
@@ -287,6 +287,7 @@ let events   =ld('ld_events',  []);
 let budget   =ld('ld_budget',  []);
 let txs      =ld('ld_txs',     []);
 let healthLog=ld('ld_health',  []);
+let googleEventsCache = [];
 
 // ── TAB ──────────────────────────────────────────────────────────
 function switchTab(id,btn){
@@ -505,12 +506,31 @@ function renderCalendar(){
   for(let i=0;i<3;i++) html+=`<div class="cal-day other-month">${28+i}</div>`;
   for(let d=1;d<=31;d++){html+=`<div class="cal-day ${d===14?'today':''} ${eventNums.includes(d)&&d!==14?'has-event':''}">${d}</div>`;}
   document.getElementById('cal-grid').innerHTML=html;
-  document.getElementById('event-list').innerHTML=events.map((e,i)=>`
+
+  const manualHTML = events.map((e,i)=>`
     <div class="event-item">
       <div class="event-dot" style="background:${e.color}"></div>
-      <div style="flex:1;display:grid;grid-template-columns:1fr 90px;gap:6px"><input class="inline-input" value="${esc(e.name)}" onchange="updateEvent(${i},'name',this.value)" /><input class="mini-input" value="${esc(e.date)}" onchange="updateEvent(${i},'date',this.value)" /></div>
+      <div style="flex:1;display:grid;grid-template-columns:1fr 90px;gap:6px">
+        <input class="inline-input" value="${esc(e.name)}" onchange="updateEvent(${i},'name',this.value)" />
+        <input class="mini-input" value="${esc(e.date)}" onchange="updateEvent(${i},'date',this.value)" />
+      </div>
       <button class="del-btn" onclick="deleteEvent(${i})">✕</button>
     </div>`).join('');
+
+  const googleHTML = googleEventsCache.map(e => `
+    <div class="event-item">
+      <div class="event-dot" style="background:${e.calendarColor}"></div>
+      <div style="flex:1">
+        <div style="font-size:13px">${esc(e.summary || "Untitled")}</div>
+        <div style="font-size:11px;color:var(--text2)">
+          ${formatGoogleDate(e.start)} · ${esc(e.calendarName)}
+        </div>
+      </div>
+    </div>
+  `).join("");
+
+  document.getElementById('event-list').innerHTML =
+    googleHTML + manualHTML || '<p style="color:var(--text2);font-size:13px">No events yet.</p>';
 }
 function addEvent(){
   const name=document.getElementById('event-input').value.trim();
@@ -584,17 +604,57 @@ async function initGoogleCalendar() {
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
     scope: SCOPES,
-    callback: async () => {
-      await loadGoogleEvents();
+    callback: async (tokenResponse) => {
+      if (tokenResponse && tokenResponse.access_token) {
+        localStorage.setItem(
+          "google_calendar_token",
+          JSON.stringify({
+            access_token: tokenResponse.access_token,
+            expires_at: Date.now() + ((tokenResponse.expires_in || 3600) * 1000)
+          })
+        );
+
+        gapi.client.setToken({
+          access_token: tokenResponse.access_token
+        });
+
+        await loadGoogleEvents();
+      }
     },
   });
+
+  const savedTokenRaw = localStorage.getItem("google_calendar_token");
+
+  if (savedTokenRaw) {
+    try {
+      const savedToken = JSON.parse(savedTokenRaw);
+
+      if (savedToken.access_token && savedToken.expires_at > Date.now()) {
+        gapi.client.setToken({
+          access_token: savedToken.access_token
+        });
+
+        await loadGoogleEvents();
+      } else {
+        localStorage.removeItem("google_calendar_token");
+      }
+    } catch (e) {
+      localStorage.removeItem("google_calendar_token");
+    }
+  }
 }
 
 function handleAuth() {
+  if (!tokenClient) {
+    alert("Google Calendar is still loading. Try again in a second.");
+    return;
+  }
+
   tokenClient.requestAccessToken({
-    prompt: "",
+    prompt: localStorage.getItem("google_calendar_token") ? "" : "consent",
   });
 }
+
 function renderCalendarFilters(calendars) {
 
   const saved =
@@ -669,7 +729,6 @@ function toggleCalendarFilter(
   loadGoogleEvents();
 }
 async function loadGoogleEvents() {
-
   const now = new Date();
 
   const weekFromNow = new Date();
@@ -679,32 +738,30 @@ async function loadGoogleEvents() {
     await gapi.client.calendar.calendarList.list();
 
   window.calendars =
-  calendarList.result.items || [];
+    calendarList.result.items || [];
 
-const calendars = window.calendars;
+  const calendars = window.calendars;
 
-renderCalendarFilters(calendars);
+  renderCalendarFilters(calendars);
 
-console.log(
-  "CALENDARS FOUND:",
-  calendars.map(c => c.summary)
-);
-
-let allEvents = [];
-
-  for (const cal of calendars) {
-   const saved =
-  JSON.parse(
-    localStorage.getItem(
-      "selected_calendars"
-    ) || "{}"
+  console.log(
+    "CALENDARS FOUND:",
+    calendars.map(c => c.summary)
   );
 
-if (saved[cal.id] === false)
-  continue;
+  const saved =
+    JSON.parse(
+      localStorage.getItem(
+        "selected_calendars"
+      ) || "{}"
+    );
+
+  let allEvents = [];
+
+  for (const cal of calendars) {
+    if (saved[cal.id] === false) continue;
 
     try {
-
       const response =
         await gapi.client.calendar.events.list({
           calendarId: cal.id,
@@ -715,9 +772,9 @@ if (saved[cal.id] === false)
           orderBy: "startTime",
         });
 
-      const events = response.result.items || [];
+      const calEvents = response.result.items || [];
 
-      events.forEach(e => {
+      calEvents.forEach(e => {
         e.calendarColor =
           cal.backgroundColor || "#3266ad";
 
@@ -725,10 +782,10 @@ if (saved[cal.id] === false)
           cal.summary || "Calendar";
       });
 
-      allEvents.push(...events);
+      allEvents.push(...calEvents);
 
     } catch (err) {
-      console.log("Skipped calendar:", cal.summary);
+      console.log("Skipped calendar:", cal.summary, err);
     }
   }
 
@@ -740,39 +797,8 @@ if (saved[cal.id] === false)
     );
   });
 
-  document.getElementById("event-list").innerHTML =
-    allEvents.map(e => `
-
-      <div class="event-item">
-
-        <div
-          class="event-dot"
-          style="background:${e.calendarColor}">
-        </div>
-
-        <div style="flex:1">
-
-          <div style="font-size:13px">
-            ${e.summary || "Untitled"}
-          </div>
-
-          <div
-            style="
-              font-size:11px;
-              color:var(--text2)
-            ">
-
-            ${formatGoogleDate(e.start)}
-            ·
-            ${e.calendarName}
-
-          </div>
-
-        </div>
-
-      </div>
-
-    `).join("");
+  googleEventsCache = allEvents;
+  renderCalendar();
 }
 
 function formatGoogleDate(start) {
