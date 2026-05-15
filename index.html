@@ -588,8 +588,16 @@ function renderTasks(){
 
   const allTasks = [...calendarTasks, ...personalTasks];
 
+  const weekStart = selectedWeekStart();
+  const weekEnd = selectedWeekEnd();
+
   const weekTasks = allTasks.filter(t => {
-    return !t.due || isInSelectedWeek(t.due);
+    if(!t.due || isNaN(t.due)) return true;
+
+    const due = new Date(t.due);
+    due.setHours(0,0,0,0);
+
+    return due >= weekStart && due < weekEnd;
   });
 
   const activeTasks = sortTasks(
@@ -633,7 +641,7 @@ function renderTasks(){
   document.getElementById('ov-task-list').innerHTML =
     activeTasks.slice(0,4).map(t => `
       <div class="task-item">
-        <div class="task-check ${t.done ? 'checked' : ''}"
+        <div class="task-check ${t.done?'checked':''}"
           onclick="${t.calendarTask ? `toggleCalendarTask(${safeJs(t.id)})` : `toggleTask(${t.personalIndex})`}">
         </div>
         <div class="task-text">${esc(t.text)}</div>
