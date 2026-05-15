@@ -122,15 +122,13 @@
   .week-slot { min-height:46px; border-right:0.5px solid var(--border); border-bottom:0.5px solid var(--border); padding:2px; position:relative; overflow:hidden; }
   .week-slot:nth-child(8n) { border-right:none; }
   .week-event { font-size:11px; line-height:1.25; color:#fff; border-radius:6px; padding:4px 5px; margin-bottom:2px; overflow:hidden; cursor:pointer; }
-  .calendar-filter-row { display:grid; grid-template-columns:22px 16px 1fr 96px; gap:8px; align-items:center; padding:6px 0; border-bottom:0.5px solid var(--border); }
+  .calendar-filter-row { display:grid; grid-template-columns:22px 16px 92px 1fr; gap:8px; align-items:center; padding:6px 0; border-bottom:0.5px solid var(--border); }
+  .calendar-role-select { font-size:12px; padding:4px 6px; border:0.5px solid var(--border2); border-radius:5px; background:var(--bg); color:var(--text); font-family:inherit; outline:none; }
   .calendar-filter-row:last-child { border-bottom:none; }
   .calendar-name-input { width:100%; font-size:13px; padding:4px 6px; border:0.5px solid transparent; border-radius:5px; background:transparent; color:var(--text); font-family:inherit; outline:none; }
   .calendar-name-input:hover, .calendar-name-input:focus { border-color:var(--border2); background:var(--bg2); }
   .calendar-color-dot { width:10px; height:10px; border-radius:50%; }
   .event-list-card { max-height:280px; overflow:auto; }
-  .calendar-route-select { width:100%; font-size:12px; padding:4px 6px; border:0.5px solid var(--border2); border-radius:5px; background:var(--bg); color:var(--text); font-family:inherit; outline:none; }
-  .canvas-task-pill { display:inline-block; font-size:10px; padding:1px 6px; border-radius:999px; background:#E6F1FB; color:#185FA5; margin-left:4px; }
-
   @media(max-width:700px){
     .month-grid { min-height:480px; }
     .month-cell { min-height:82px; padding:4px; }
@@ -356,84 +354,76 @@ function switchTab(id,btn){
   if(id==='tasks'){renderTasks();renderGoals();}
   if(id==='health') renderHealthCharts();
   if(id==='finance'){renderFinance();renderFinChart();}
+  if(id==='calendar') renderCalendar();
 }
 
 // ── TASKS ────────────────────────────────────────────────────────
-function renderTasks(){
-  const calendarTasks = getCalendarTasks();
-  const allTasks = [...calendarTasks, ...tasks.map((t,i)=>({...t, localIndex:i, source:'local'}))];
-  const done = tasks.filter(t=>t.done).length;
-  const open = allTasks.filter(t=>!t.done).length;
-
-  document.getElementById('open-count').textContent = open;
-  document.getElementById('done-count').textContent = done;
-  document.getElementById('ov-tasks').textContent = done + '/' + allTasks.length;
-
-  document.getElementById('task-list').innerHTML = allTasks.length ? allTasks.map((t)=>{
-    const isCalendarTask = t.source === 'calendar';
-    const metaParts = [];
-    metaParts.push(isCalendarTask ? (t.calendarName || 'Calendar task') : t.tag);
-    metaParts.push((t.priority || 'medium') + ' priority');
-    if(t.due) metaParts.push('Due ' + formatTaskDue(t.due));
-
-    return `
-      <div class="task-item">
-        <div class="task-check ${t.done?'checked':''}" ${isCalendarTask ? `onclick="toggleCalendarTask('${esc(t.id)}')"` : `onclick="toggleTask(${t.localIndex})"`}></div>
-        <div class="task-text">
-          ${isCalendarTask
-            ? `<div style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}">${esc(t.text)} <span class="canvas-task-pill">Calendar</span></div>`
-            : `<input class="inline-input" value="${esc(t.text)}" onchange="updateTask(${t.localIndex},'text',this.value)" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}" />`
-          }
-          <div class="task-meta">${metaParts.join(' · ')}</div>
-        </div>
-        ${isCalendarTask ? '' : `<button class="del-btn" onclick="deleteTask(${t.localIndex})">✕</button>`}
-      </div>`;
-  }).join('') : '<p style="color:var(--text2);font-size:13px">No tasks yet.</p>';
-
-  document.getElementById('ov-task-list').innerHTML = allTasks.slice(0,4).map((t)=>{
-    const isCalendarTask = t.source === 'calendar';
-    return `
-      <div class="task-item">
-        <div class="task-check ${t.done?'checked':''}" ${isCalendarTask ? `onclick="toggleCalendarTask('${esc(t.id)}')"` : `onclick="toggleTask(${t.localIndex})"`}></div>
-        <div class="task-text" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}">
-          ${esc(t.text)}
-          ${t.due ? `<div class="task-meta">Due ${formatTaskDue(t.due)}</div>` : ''}
-        </div>
-        <span class="badge ${t.priority==='high'?'red':t.priority==='medium'?'amber':'blue'}">${t.priority || 'medium'}</span>
-      </div>`;
-  }).join('');
-}
-
 function getCalendarTasks(){
-  const routes = ld('calendar_routes', {});
-  const completed = ld('calendar_task_done', {});
+  const roles = ld("calendar_roles", {});
 
   return googleEventsCache
-    .filter(e => routes[e.calendarId] === 'tasks')
-    .map(e => {
-      const start = eventStartDate(e);
-      return {
-        id: e.id || `${e.calendarId}-${e.summary}-${e.start?.dateTime || e.start?.date}`,
-        text: e.summary || 'Untitled assignment',
-        done: completed[e.id] === true,
-        priority: 'medium',
-        due: start,
-        calendarName: e.calendarName || e.originalCalendarName || 'Calendar',
-        source: 'calendar'
-      };
-    })
+    .filter(e => roles[e.calendarId] === "tasks")
+    .map(e => ({
+      text: e.summary || "Calendar task",
+      done: false,
+      tag: e.calendarName || e.originalCalendarName || "Calendar",
+      priority: "medium",
+      due: eventStartDate(e),
+      calendarTask: true,
+      htmlLink: e.htmlLink || null
+    }))
     .sort((a,b)=>a.due-b.due);
 }
 
-function toggleCalendarTask(id){
-  const completed = ld('calendar_task_done', {});
-  completed[id] = !completed[id];
-  sv('calendar_task_done', completed);
-  renderTasks();
-}
+function renderTasks(){
+  const calendarTasks = getCalendarTasks();
+  const allTasks = [...calendarTasks, ...tasks];
+  const done=tasks.filter(t=>t.done).length;
+  const open=tasks.filter(t=>!t.done).length + calendarTasks.length;
 
-function formatTaskDue(date){
-  return new Date(date).toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  document.getElementById('open-count').textContent=open;
+  document.getElementById('done-count').textContent=done;
+  document.getElementById('ov-tasks').textContent=done+'/'+allTasks.length;
+
+  document.getElementById('task-list').innerHTML=allTasks.length?allTasks.map((t,i)=>{
+    const isCalendarTask = t.calendarTask === true;
+    const realIndex = i - calendarTasks.length;
+    const dueText = t.due instanceof Date && !isNaN(t.due)
+      ? ` · Due ${t.due.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`
+      : '';
+
+    return `
+      <div class="task-item">
+        <div class="task-check ${t.done?'checked':''}" ${isCalendarTask ? '' : `onclick="toggleTask(${realIndex})"`}></div>
+        <div class="task-text">
+          ${isCalendarTask
+            ? `<div>${esc(t.text)}</div>`
+            : `<input class="inline-input" value="${esc(t.text)}" onchange="updateTask(${realIndex},'text',this.value)" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}" />`
+          }
+          <div class="task-meta">${esc(t.tag)} · ${t.priority} priority${dueText}</div>
+          ${isCalendarTask && t.htmlLink ? `<div class="task-meta"><a href="${esc(t.htmlLink)}" target="_blank" rel="noopener">Open calendar item</a></div>` : ''}
+        </div>
+        ${isCalendarTask ? '' : `<button class="del-btn" onclick="deleteTask(${realIndex})">✕</button>`}
+      </div>`;
+  }).join(''):'<p style="color:var(--text2);font-size:13px">No tasks yet.</p>';
+
+  document.getElementById('ov-task-list').innerHTML=allTasks.slice(0,4).map((t,i)=>{
+    const isCalendarTask = t.calendarTask === true;
+    const realIndex = i - calendarTasks.length;
+    const dueText = t.due instanceof Date && !isNaN(t.due)
+      ? ` · Due ${t.due.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`
+      : '';
+
+    return `
+      <div class="task-item">
+        <div class="task-check ${t.done?'checked':''}" ${isCalendarTask ? '' : `onclick="toggleTask(${realIndex})"`}></div>
+        <div class="task-text" style="text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}">
+          ${esc(t.text)}
+          <div class="task-meta">${esc(t.tag)}${dueText}</div>
+        </div>
+        <span class="badge ${t.priority==='high'?'red':t.priority==='medium'?'amber':'blue'}">${t.priority}</span>
+      </div>`;
+  }).join('');
 }
 function toggleTask(i){tasks[i].done=!tasks[i].done;sv('ld_tasks',tasks);renderTasks();}
 function updateTask(i,f,v){tasks[i][f]=v;sv('ld_tasks',tasks);renderTasks();}
@@ -658,10 +648,14 @@ function eventStartDate(e){
 }
 
 function getAllVisibleEvents(){
+  const roles = ld("calendar_roles", {});
   const manualEvents = events.map(manualEventToCalendarEvent);
-  const routes = ld('calendar_routes', {});
-  const visibleGoogleEvents = googleEventsCache.filter(e => routes[e.calendarId] !== 'tasks');
-  return [...visibleGoogleEvents, ...manualEvents].sort((a,b)=>eventStartDate(a)-eventStartDate(b));
+
+  const calendarEvents = googleEventsCache.filter(e => {
+    return roles[e.calendarId] !== "tasks";
+  });
+
+  return [...calendarEvents, ...manualEvents].sort((a,b)=>eventStartDate(a)-eventStartDate(b));
 }
 
 function sameDay(a,b){
@@ -962,7 +956,7 @@ function handleAuth() {
 
 function renderCalendarFilters(calendars) {
   const saved = ld("selected_calendars", {});
-  const routes = ld("calendar_routes", {});
+  const roles = ld("calendar_roles", {});
   const box = document.getElementById("calendar-filters");
   if (!box) return;
 
@@ -971,34 +965,51 @@ function renderCalendarFilters(calendars) {
     return;
   }
 
-  box.innerHTML = calendars.map(cal => {
-    const checked = saved[cal.id] !== false;
-    const displayName = getCalendarDisplayName(cal);
-    const color = cal.backgroundColor || "#3266ad";
-    const route = routes[cal.id] || "calendar";
+  box.innerHTML = `
+    <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px">
+      Set a calendar to <strong>Tasks</strong> to move those items out of the calendar view and into the Tasks page.
+    </div>
+    ${calendars.map(cal => {
+      const checked = saved[cal.id] !== false;
+      const role = roles[cal.id] || "calendar";
+      const displayName = getCalendarDisplayName(cal);
+      const color = cal.backgroundColor || "#3266ad";
 
-    return `
-      <div class="calendar-filter-row">
-        <input
-          type="checkbox"
-          ${checked ? "checked" : ""}
-          onchange="toggleCalendarFilter('${esc(cal.id)}', this.checked)"
-          title="Show or hide this calendar"
-        />
-        <span class="calendar-color-dot" style="background:${color}"></span>
-        <input
-          class="calendar-name-input"
-          value="${esc(displayName)}"
-          onchange="setCalendarDisplayName('${esc(cal.id)}', this.value)"
-          title="Rename this calendar inside the dashboard"
-        />
-        <select class="calendar-route-select" onchange="setCalendarRoute('${esc(cal.id)}', this.value)" title="Choose where this calendar appears">
-          <option value="calendar" ${route === 'calendar' ? 'selected' : ''}>Calendar</option>
-          <option value="tasks" ${route === 'tasks' ? 'selected' : ''}>Tasks</option>
-        </select>
-      </div>
-    `;
-  }).join("");
+      return `
+        <div class="calendar-filter-row">
+          <input
+            type="checkbox"
+            ${checked ? "checked" : ""}
+            onchange="toggleCalendarFilter('${esc(cal.id)}', this.checked)"
+            title="Show or hide this calendar everywhere"
+          />
+          <span class="calendar-color-dot" style="background:${color}"></span>
+          <select
+            class="calendar-role-select"
+            onchange="setCalendarRole('${esc(cal.id)}', this.value)"
+            title="Choose where this calendar appears"
+          >
+            <option value="calendar" ${role === "calendar" ? "selected" : ""}>Calendar</option>
+            <option value="tasks" ${role === "tasks" ? "selected" : ""}>Tasks</option>
+          </select>
+          <input
+            class="calendar-name-input"
+            value="${esc(displayName)}"
+            onchange="setCalendarDisplayName('${esc(cal.id)}', this.value)"
+            title="Rename this calendar inside the dashboard"
+          />
+        </div>
+      `;
+    }).join("")}
+  `;
+}
+
+function setCalendarRole(calendarId, role) {
+  const roles = ld("calendar_roles", {});
+  roles[calendarId] = role;
+  sv("calendar_roles", roles);
+  renderCalendar();
+  renderTasks();
 }
 
 function toggleCalendarFilter(calendarId, checked) {
@@ -1006,14 +1017,6 @@ function toggleCalendarFilter(calendarId, checked) {
   saved[calendarId] = checked;
   sv("selected_calendars", saved);
   loadGoogleEvents();
-}
-
-function setCalendarRoute(calendarId, route) {
-  const routes = ld("calendar_routes", {});
-  routes[calendarId] = route;
-  sv("calendar_routes", routes);
-  renderCalendar();
-  renderTasks();
 }
 
 async function loadGoogleEvents() {
