@@ -1215,23 +1215,13 @@ function toggleCalendarFilter(calendarId, checked) {
 }
 
 async function loadGoogleEvents() {
-  const start = new Date(calendarCursor);
-  const end = new Date(calendarCursor);
+  const start = new Date();
+  start.setMonth(start.getMonth() - 1);
+  start.setHours(0,0,0,0);
 
-  if(calendarView === 'month'){
-    start.setDate(1);
-    start.setHours(0,0,0,0);
-    start.setMonth(start.getMonth() - 1);
-
-    end.setDate(1);
-    end.setMonth(end.getMonth() + 2);
-    end.setHours(23,59,59,999);
-  } else {
-    const s = startOfWeek(calendarCursor);
-    start.setTime(s.getTime());
-    end.setTime(s.getTime());
-    end.setDate(end.getDate() + 7);
-  }
+  const end = new Date();
+  end.setMonth(end.getMonth() + 6);
+  end.setHours(23,59,59,999);
 
   const calendarList =
     await gapi.client.calendar.calendarList.list();
@@ -1291,41 +1281,39 @@ function formatGoogleDate(start) {
 }
 
 gapi.load("client", initGoogleCalendar);
- const shell =
-  document.querySelector(".calendar-shell");
 
-const savedHeight =
-  localStorage.getItem(
-    "calendar_height"
-  );
+const shell = document.querySelector(".calendar-shell");
 
-if (savedHeight && shell) {
-  shell.style.height = savedHeight;
+if(shell){
+
+  const savedHeight =
+    localStorage.getItem("calendar_height");
+
+  if(savedHeight){
+    shell.style.height = savedHeight;
+  }
+
+  let resizeTimeout;
+
+  const observer = new ResizeObserver(() => {
+    clearTimeout(resizeTimeout);
+
+    resizeTimeout = setTimeout(() => {
+      localStorage.setItem(
+        "calendar_height",
+        shell.style.height || `${shell.offsetHeight}px`
+      );
+    }, 100);
+  });
+
+  observer.observe(shell);
 }
 
-if (shell) {
-
-  new ResizeObserver(() => {
-
-    localStorage.setItem(
-      "calendar_height",
-      shell.style.height ||
-      shell.offsetHeight + "px"
-    );
-
-  }).observe(shell);
-
-}
-// ── INIT ─────────────────────────────────────────────────────────
-renderGlobalWeekToolbar('overview');
 renderTasks();
 renderGoals();
 renderHabits();
 renderHealth();
 renderFinance();
-renderSpendChart();
-renderFinChart();
-renderHealthCharts();
 renderNotes();
 renderCalendar();
 </script>
