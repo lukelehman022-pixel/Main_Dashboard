@@ -430,8 +430,18 @@ function renderGlobalWeekToolbar(activeTab=getActiveTabId()){
 function changeAppWeek(delta){
   appWeekCursor.setDate(appWeekCursor.getDate() + delta * 7);
   sv('app_week_cursor', appWeekCursor.toISOString());
+
   calendarCursor = new Date(appWeekCursor);
-  refreshCurrentTab();
+
+  renderGlobalWeekToolbar();
+  renderTasks();
+  renderHabits();
+  renderHealth();
+  renderFinance();
+
+  if(getActiveTabId() === 'calendar'){
+    renderCalendar();
+  }
 }
 
 function appWeekToday(){
