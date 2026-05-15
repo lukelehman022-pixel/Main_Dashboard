@@ -177,7 +177,15 @@
       <div class="metric"><div class="label">Completed</div><div class="value" id="done-count">0</div></div>
       <div class="metric"><div class="label">Goals on track</div><div class="value" id="goals-on-track">0/0</div></div>
     </div>
-    <div class="card"><h3>Tasks</h3><div id="task-list"></div>
+    <div class="card"><h3>Tasks</h3>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+        <span style="font-size:12px;color:var(--text2)">Sort by</span>
+        <button class="cal-btn" id="sort-due" onclick="setTaskSort('due')">Due date</button>
+        <button class="cal-btn" id="sort-class" onclick="setTaskSort('class')">Class</button>
+        <button class="cal-btn" id="sort-priority" onclick="setTaskSort('priority')">Priority</button>
+        <button class="cal-btn" id="sort-alpha" onclick="setTaskSort('alpha')">A-Z</button>
+      </div>
+      <div id="task-list"></div>
       <div class="input-row">
         <input type="text" id="task-input" placeholder="Add a task..." onkeydown="if(event.key==='Enter') addTask()" />
         <select id="task-tag"><option>Personal</option><option>Work</option><option>Health</option><option>Finance</option></select>
@@ -411,6 +419,52 @@ function deleteCalendarTask(id){
   renderTasks();
 }
 
+
+let taskSortMode = ld('task_sort_mode', 'due');
+
+function setTaskSort(mode){
+  taskSortMode = mode;
+  sv('task_sort_mode', mode);
+  renderTasks();
+}
+
+function sortTasks(list){
+  const sorted = [...list];
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+
+  if(taskSortMode === 'class'){
+    sorted.sort((a,b) => {
+      const classCompare = String(a.tag || '').localeCompare(String(b.tag || ''));
+      if(classCompare !== 0) return classCompare;
+      return getTaskTime(a) - getTaskTime(b);
+    });
+  } else if(taskSortMode === 'priority'){
+    sorted.sort((a,b) => {
+      const priorityCompare = (priorityOrder[a.priority] ?? 99) - (priorityOrder[b.priority] ?? 99);
+      if(priorityCompare !== 0) return priorityCompare;
+      return getTaskTime(a) - getTaskTime(b);
+    });
+  } else if(taskSortMode === 'alpha'){
+    sorted.sort((a,b) => String(a.text || '').localeCompare(String(b.text || '')));
+  } else {
+    sorted.sort((a,b) => getTaskTime(a) - getTaskTime(b));
+  }
+
+  return sorted;
+}
+
+function getTaskTime(task){
+  if(!task.due || isNaN(task.due)) return Number.MAX_SAFE_INTEGER;
+  return task.due.getTime();
+}
+
+function updateTaskSortButtons(){
+  ['due','class','priority','alpha'].forEach(mode => {
+    const btn = document.getElementById('sort-' + mode);
+    if(btn) btn.classList.toggle('active', taskSortMode === mode);
+  });
+}
+
 function renderTaskRow(t, opts){
   const dueText = t.due && !isNaN(t.due) ? ` · Due ${t.due.toLocaleDateString('en-US',{month:'short',day:'numeric'})}` : '';
   const priorityClass = t.priority === 'high' ? 'red' : t.priority === 'medium' ? 'amber' : 'blue';
@@ -451,8 +505,9 @@ function renderTasks(){
   const calendarTasks = getCalendarTasks();
   const personalTasks = tasks.map((t,i)=>({...t, personalIndex:i, calendarTask:false}));
   const allTasks = [...calendarTasks, ...personalTasks];
-  const activeTasks = allTasks.filter(t=>!t.done);
-  const completedTasks = allTasks.filter(t=>t.done);
+  const activeTasks = sortTasks(allTasks.filter(t=>!t.done));
+  const completedTasks = sortTasks(allTasks.filter(t=>t.done));
+  updateTaskSortButtons();
 
   document.getElementById('open-count').textContent = activeTasks.length;
   document.getElementById('done-count').textContent = completedTasks.length;
