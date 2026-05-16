@@ -469,10 +469,9 @@ function safeJs(v){
 
 function getCalendarTaskId(e){
   const calendarId = e.calendarId || 'calendar';
-  const googleId = e.id || '';
   const title = e.summary || 'task';
   const rawDate = e.start?.dateTime || e.start?.date || '';
-  return `${calendarId}__${googleId}__${title}__${rawDate}`;
+  return `${calendarId}__${title}__${rawDate}`;
 }
 
 function getCalendarTasks(){
@@ -486,7 +485,6 @@ function getCalendarTasks(){
     .map(e => {
       const id = getCalendarTaskId(e);
       const edited = edits[id] || {};
-      const isDone = completed[id] === true || e.__dashboardDone === true;
 
       return {
         id,
@@ -494,7 +492,7 @@ function getCalendarTasks(){
         tag: edited.tag || e.calendarName || e.originalCalendarName || 'Calendar',
         priority: edited.priority || 'medium',
         due: eventStartDate(e),
-        done: isDone,
+        done: completed[id] === true,
         calendarTask: true
       };
     })
@@ -505,13 +503,6 @@ function toggleCalendarTask(id){
   const completed = ld('calendar_task_done', {});
   completed[id] = completed[id] === true ? false : true;
   sv('calendar_task_done', completed);
-
-  googleEventsCache.forEach(e => {
-    if(getCalendarTaskId(e) === id){
-      e.__dashboardDone = completed[id];
-    }
-  });
-
   renderTasks();
 }
 
@@ -571,24 +562,17 @@ function renderTaskRow(t){
   if(t.calendarTask){
     return `
       <div class="task-item ${t.done ? 'task-row-completed' : ''}">
-        <div
-          class="task-check ${t.done ? 'checked' : ''}"
-          role="button"
-          tabindex="0"
-          onclick="toggleCalendarTask(${safeJs(t.id)})">
-        </div>
-
+        <div class="task-check ${t.done?'checked':''}" onclick='toggleCalendarTask(${safeJs(t.id)})'></div>
         <div class="task-text">
           <input class="inline-input" value="${esc(t.text)}"
-            onchange="updateCalendarTask(${safeJs(t.id)}, 'text', this.value)"
+            onchange='updateCalendarTask(${safeJs(t.id)}, "text", this.value)'
             style="font-weight:500;text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}" />
-
           <div class="task-meta">
             <input class="inline-input" value="${esc(t.tag)}"
-              onchange="updateCalendarTask(${safeJs(t.id)}, 'tag', this.value)"
+              onchange='updateCalendarTask(${safeJs(t.id)}, "tag", this.value)'
               style="max-width:240px;font-size:11px;color:var(--text2);padding:0 3px" />
             ·
-            <select class="mini-input" onchange="updateCalendarTask(${safeJs(t.id)}, 'priority', this.value)" style="width:90px">
+            <select class="mini-input" onchange='updateCalendarTask(${safeJs(t.id)}, "priority", this.value)' style="width:90px">
               <option value="low" ${t.priority === 'low' ? 'selected' : ''}>low</option>
               <option value="medium" ${t.priority === 'medium' ? 'selected' : ''}>medium</option>
               <option value="high" ${t.priority === 'high' ? 'selected' : ''}>high</option>
@@ -596,22 +580,19 @@ function renderTaskRow(t){
             priority${dueText}
           </div>
         </div>
-
-        <button class="del-btn" onclick="deleteCalendarTask(${safeJs(t.id)})">✕</button>
+        <button class="del-btn" onclick='deleteCalendarTask(${safeJs(t.id)})'>✕</button>
       </div>`;
   }
 
   return `
     <div class="task-item ${t.done ? 'task-row-completed' : ''}">
       <div class="task-check ${t.done?'checked':''}" onclick="toggleTask(${t.personalIndex})"></div>
-
       <div class="task-text">
         <input class="inline-input" value="${esc(t.text)}"
           onchange="updateTask(${t.personalIndex},'text',this.value)"
           style="font-weight:500;text-decoration:${t.done?'line-through':'none'};color:${t.done?'var(--text2)':'var(--text)'}" />
         <div class="task-meta">${esc(t.tag)} · ${t.priority} priority</div>
       </div>
-
       <button class="del-btn" onclick="deleteTask(${t.personalIndex})">✕</button>
     </div>`;
 }
@@ -626,10 +607,8 @@ function renderTasks(){
 
   const weekTasks = allTasks.filter(t => {
     if(!t.due || isNaN(t.due)) return true;
-
     const due = new Date(t.due);
     due.setHours(0,0,0,0);
-
     return due >= weekStart && due < weekEnd;
   });
 
@@ -659,16 +638,15 @@ function renderTasks(){
 
   document.getElementById('ov-task-list').innerHTML = activeTasks.slice(0,4).map(t => `
     <div class="task-item">
-      <div class="task-check ${t.done?'checked':''}" onclick="${t.calendarTask ? `toggleCalendarTask(${safeJs(t.id)})` : `toggleTask(${t.personalIndex})`}"></div>
+      <div class="task-check ${t.done?'checked':''}" onclick='${t.calendarTask ? `toggleCalendarTask(${safeJs(t.id)})` : `toggleTask(${t.personalIndex})`}'></div>
       <div class="task-text">${esc(t.text)}</div>
       <span class="badge ${t.priority==='high'?'red':t.priority==='medium'?'amber':'blue'}">${t.priority}</span>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 function toggleTask(i){
   tasks[i].done = tasks[i].done === true ? false : true;
-  sv('ld_tasks',tasks);
+  sv('ld_tasks', tasks);
   renderTasks();
 }
 
@@ -687,19 +665,11 @@ function deleteTask(i){
 function addTask(){
   const inp=document.getElementById('task-input');
   if(!inp.value.trim())return;
-
-  tasks.unshift({
-    text:inp.value.trim(),
-    done:false,
-    tag:document.getElementById('task-tag').value,
-    priority:document.getElementById('task-priority').value
-  });
-
+  tasks.unshift({text:inp.value.trim(),done:false,tag:document.getElementById('task-tag').value,priority:document.getElementById('task-priority').value});
   sv('ld_tasks',tasks);
   inp.value='';
   renderTasks();
 }
-
 
 // ── GOALS ────────────────────────────────────────────────────────
 function renderGoals(){
