@@ -501,7 +501,10 @@ function getCalendarTasks(){
 
 function toggleCalendarTask(id){
   const completed = ld('calendar_task_done', {});
-  completed[id] = completed[id] === true ? false : true;
+  const currentTask = getCalendarTasks().find(t => t.id === id);
+
+  completed[id] = !(currentTask && currentTask.done === true);
+
   sv('calendar_task_done', completed);
   renderTasks();
 }
