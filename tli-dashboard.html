@@ -3,110 +3,178 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tracy Lehman Interiors — Dashboard</title>
+<title>TLI — Studio Dashboard</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,sans-serif;background:#f9f9f8;color:#1a1a1a;padding:0 1.5rem 3rem}
-:root{
-  --color-background-primary:#ffffff;
-  --color-background-secondary:#f4f4f2;
-  --color-background-tertiary:#eeede9;
-  --color-text-primary:#1a1a1a;
-  --color-text-secondary:#6b6b67;
-  --color-text-tertiary:#a0a09c;
-  --color-border-tertiary:rgba(0,0,0,0.1);
-  --color-border-secondary:rgba(0,0,0,0.2);
-  --color-border-primary:rgba(0,0,0,0.3);
-  --border-radius-md:8px;
-  --border-radius-lg:12px;
-}
-@media(prefers-color-scheme:dark){
-  body{background:#1a1a1a;color:#f0f0ee}
-  :root{
-    --color-background-primary:#242422;
-    --color-background-secondary:#2e2e2c;
-    --color-background-tertiary:#383836;
-    --color-text-primary:#f0f0ee;
-    --color-text-secondary:#a0a09c;
-    --color-text-tertiary:#6b6b67;
-    --color-border-tertiary:rgba(255,255,255,0.1);
-    --color-border-secondary:rgba(255,255,255,0.2);
-    --color-border-primary:rgba(255,255,255,0.3);
-  }
-}
-.dash{max-width:960px;margin:0 auto;padding:1.5rem 0}
-.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
-.logo{font-size:13px;font-weight:500;color:var(--color-text-secondary);letter-spacing:.08em;text-transform:uppercase}
-.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
-@media(max-width:600px){.metric-grid{grid-template-columns:repeat(2,1fr)}}
-.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.9rem 1rem}
-.metric-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:6px}
-.metric-value{font-size:22px;font-weight:500;color:var(--color-text-primary)}
-.metric-sub{font-size:11px;color:var(--color-text-tertiary);margin-top:3px}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
-.section-title{font-size:14px;font-weight:500;color:var(--color-text-primary)}
-.btn{background:transparent;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 12px;font-size:12px;color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;gap:5px}
-.btn:hover{background:var(--color-background-secondary)}
-.btn-primary{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
-.btn-primary:hover{opacity:.85}
-.table-wrap{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:1.5rem}
+body{font-family:"Inter",system-ui,-apple-system,sans-serif;background:#141412;color:#e8e6e0;min-height:100vh;display:flex}
+
+/* SIDEBAR */
+.sidebar{width:220px;min-height:100vh;background:#1a1917;border-right:1px solid #2a2926;display:flex;flex-direction:column;padding:0;flex-shrink:0;position:fixed;top:0;left:0;height:100vh;overflow-y:auto}
+.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid #2a2926}
+.sidebar-logo-title{font-size:15px;font-weight:600;color:#e8e6e0;letter-spacing:.01em;font-family:"Playfair Display",serif;text-transform:none}
+.sidebar-logo-sub{font-size:11px;color:#6b6860;margin-top:3px;letter-spacing:.03em}
+.sidebar-section{padding:20px 12px 8px;font-size:10px;color:#4a4845;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px;color:#9b9890;margin:1px 8px;transition:background .15s,color .15s}
+.nav-item:hover{background:#222120;color:#e8e6e0}
+.nav-item.active{background:#2d3b2d;color:#8fb87a}
+.nav-item i{font-size:15px;width:18px;text-align:center}
+.sidebar-bottom{margin-top:auto;padding:16px;border-top:1px solid #2a2926}
+.sidebar-user{font-size:12px;color:#6b6860}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;min-height:100vh;padding:32px 36px}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.page-title{font-size:24px;font-weight:500;color:#e8e6e0;letter-spacing:-.01em;font-family:"Playfair Display",serif}
+.page-sub{font-size:12px;color:#6b6860;margin-top:3px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+
+/* BUTTONS */
+.btn{background:transparent;border:1px solid #2e2d2a;border-radius:6px;padding:7px 14px;font-size:12px;color:#9b9890;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+.btn:hover{border-color:#3e3d3a;color:#e8e6e0;background:#1e1d1b}
+.btn-accent{background:#2d3b2d;border-color:#3d5c3d;color:#8fb87a}
+.btn-accent:hover{background:#354535;border-color:#4a6e4a;color:#a3cc8f}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.metric-card{background:#1a1917;border:1px solid #2a2926;border-radius:10px;padding:18px 20px}
+.metric-label{font-size:10px;color:#5a5855;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:10px}
+.metric-value{font-size:24px;font-weight:600;color:#e8e6e0;letter-spacing:-.02em;font-family:"Inter",sans-serif}
+.metric-sub{font-size:11px;color:#5a5855;margin-top:5px}
+.metric-accent .metric-value{color:#8fb87a}
+
+/* TABS */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid #2a2926;margin-bottom:24px}
+.tab{padding:10px 16px;font-size:12px;cursor:pointer;color:#5a5855;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;letter-spacing:.02em;transition:color .15s}
+.tab:hover{color:#9b9890}
+.tab.active{color:#8fb87a;border-bottom-color:#8fb87a;font-weight:500}
+
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* SECTION HEADER */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-title{font-size:11px;color:#5a5855;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+
+/* TABLE */
+.table-wrap{border:1px solid #2a2926;border-radius:10px;overflow:hidden;margin-bottom:24px}
 table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
-th{background:var(--color-background-secondary);padding:9px 12px;text-align:left;font-weight:500;font-size:11px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);letter-spacing:.04em;text-transform:uppercase}
-td{padding:10px 12px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:middle}
+th{background:#161614;padding:10px 14px;text-align:left;font-weight:600;font-size:10px;color:#4a4845;border-bottom:1px solid #2a2926;letter-spacing:.06em;text-transform:uppercase}
+td{padding:11px 14px;border-bottom:1px solid #222120;color:#c8c6c0;vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--color-background-secondary)}
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
-.b-intake{background:#E1F5EE;color:#0F6E56}
-.b-design{background:#E6F1FB;color:#185FA5}
-.b-spec{background:#FAEEDA;color:#854F0B}
-.b-admin{background:#EEEDFE;color:#534AB7}
-.b-close{background:#EAF3DE;color:#3B6D11}
-.b-done{background:#F1EFE8;color:#5F5E5A}
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
+tr:hover td{background:#1e1d1b}
+.empty{text-align:center;padding:32px;color:#4a4845;font-size:13px}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.03em}
+.b-intake{background:#1e2e1e;color:#6fa05a;border:1px solid #2d4a2d}
+.b-design{background:#1a2535;color:#5a8ab8;border:1px solid #253a55}
+.b-spec{background:#2e2518;color:#b8935a;border:1px solid #4a3a25}
+.b-admin{background:#251e35;color:#8a6ab8;border:1px solid #3a2d55}
+.b-close{background:#1a2e1a;color:#7ab85a;border:1px solid #2d4a2d}
+.b-done{background:#1e1e1e;color:#6a6a6a;border:1px solid #333}
+.b-paid{background:#1e2e1e;color:#6fa05a;border:1px solid #2d4a2d}
+.b-unpaid{background:#2e1e1e;color:#b85a5a;border:1px solid #4a2d2d}
+.b-overdue{background:#3e1e1e;color:#e05a5a;border:1px solid #5a2d2d}
+.b-pending{background:#2e2518;color:#b8935a;border:1px solid #4a3a25}
+.b-approved{background:#1e2e1e;color:#6fa05a;border:1px solid #2d4a2d}
+.b-rejected{background:#2e1e1e;color:#b85a5a;border:1px solid #4a2d2d}
+
+/* ICON BUTTONS */
+.icon-btn{background:none;border:none;cursor:pointer;color:#4a4845;padding:4px 5px;border-radius:4px;display:inline-flex;align-items:center;transition:all .15s;font-size:14px}
+.icon-btn:hover{color:#e8e6e0;background:#2a2926}
+.icon-btn.edit:hover{color:#8fb87a}
+.icon-btn.del:hover{color:#c05050}
+
+/* PIPELINE CARDS */
+.pipeline-card{background:#1a1917;border:1px solid #2a2926;border-radius:10px;padding:16px 18px;margin-bottom:8px;transition:border-color .15s}
+.pipeline-card:hover{border-color:#3e3d3a}
+.pc-name{font-size:14px;font-weight:500;color:#e8e6e0}
+.pc-meta{font-size:11px;color:#5a5855;margin-top:3px}
+.progress-bar{height:3px;background:#2a2926;border-radius:2px;margin-top:12px}
+.progress-fill{height:3px;border-radius:2px;background:#6fa05a}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center}
 .modal-bg.open{display:flex}
-.modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto}
-.modal h3{font-size:16px;font-weight:500;margin-bottom:1rem}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.5rem}
+.modal{background:#1a1917;border:1px solid #2e2d2a;border-radius:12px;padding:28px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:17px;font-weight:500;color:#e8e6e0;margin-bottom:20px;letter-spacing:-.01em;font-family:"Playfair Display",serif}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .form-grid.full{grid-template-columns:1fr}
-label{font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:4px}
-input,select{width:100%;padding:7px 10px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary)}
-input:focus,select:focus{outline:none;border-color:var(--color-border-primary)}
-.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem}
-.tab-bar{display:flex;gap:0;margin-bottom:1.5rem;border-bottom:0.5px solid var(--color-border-tertiary)}
-.tab{padding:8px 16px;font-size:13px;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none}
-.tab.active{color:var(--color-text-primary);font-weight:500;border-bottom-color:var(--color-text-primary)}
-.tab-content{display:none}.tab-content.active{display:block}
-.overdue{color:#a32d2d}
-.pipeline-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:.9rem 1rem;margin-bottom:.5rem}
-.pc-name{font-size:13px;font-weight:500}
-.pc-meta{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
-.progress-bar{height:4px;background:var(--color-border-tertiary);border-radius:2px;margin-top:8px}
-.progress-fill{height:4px;border-radius:2px;background:#1D9E75}
-.empty{text-align:center;padding:2rem;color:var(--color-text-tertiary);font-size:13px}
-.delete-btn{background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px 4px;font-size:14px}
-.delete-btn:hover{color:#a32d2d}
+label{font-size:11px;color:#6b6860;display:block;margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+input,select{width:100%;padding:8px 11px;font-size:13px;border:1px solid #2e2d2a;border-radius:6px;background:#111110;color:#e8e6e0;transition:border-color .15s}
+input:focus,select:focus{outline:none;border-color:#4a6e4a}
+input::placeholder{color:#3a3835}
+select option{background:#1a1917}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid #2a2926}
+
+/* PHASE FILTER */
+.phase-select{background:#111110;border:1px solid #2e2d2a;color:#9b9890;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer}
+.phase-select:focus{outline:none;border-color:#4a6e4a}
+
+/* MARK PAID */
+.pay-btn{background:#1e2e1e;border:1px solid #2d4a2d;color:#6fa05a;border-radius:5px;padding:3px 9px;font-size:11px;cursor:pointer;transition:all .15s}
+.pay-btn:hover{background:#2d3b2d;color:#8fb87a}
 </style>
 </head>
 <body>
-<div class="dash">
-  <div class="top-bar">
-    <div class="logo">Tracy Lehman Interiors — Project Dashboard</div>
-    <div style="display:flex;gap:8px">
+
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-title">Tracy Lehman</div>
+    <div class="sidebar-logo-sub">Studio Dashboard</div>
+  </div>
+  <div class="sidebar-section">Workspace</div>
+  <div class="nav-item active" onclick="switchTab('projects');setNav(this)"><i class="ti ti-layout-grid"></i> Projects</div>
+  <div class="nav-item" onclick="switchTab('financials');setNav(this)"><i class="ti ti-receipt"></i> Financials</div>
+  <div class="nav-item" onclick="switchTab('ar');setNav(this)"><i class="ti ti-cash"></i> Accounts receivable</div>
+  <div class="nav-item" onclick="switchTab('pipeline');setNav(this)"><i class="ti ti-trending-up"></i> Pipeline</div>
+  <div class="sidebar-bottom">
+    <div class="sidebar-user">Tracy Lehman Interiors</div>
+  </div>
+</nav>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="page-title">Projects</div>
+      <div class="page-sub" id="page-sub">Active project tracker & financials</div>
+    </div>
+    <div class="topbar-actions">
       <button class="btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
-      <button class="btn btn-primary" onclick="openModal('add')"><i class="ti ti-plus"></i> Add project</button>
+      <button class="btn btn-accent" id="add-btn" onclick="openModal('add')"><i class="ti ti-plus"></i> Add project</button>
     </div>
   </div>
 
-  <div class="metric-grid">
-    <div class="metric"><div class="metric-label">Active projects</div><div class="metric-value" id="m-active">0</div><div class="metric-sub">in progress</div></div>
-    <div class="metric"><div class="metric-label">Total contracted</div><div class="metric-value" id="m-contracted">$0</div><div class="metric-sub">across all projects</div></div>
-    <div class="metric"><div class="metric-label">Outstanding AR</div><div class="metric-value" id="m-ar">$0</div><div class="metric-sub">unpaid invoices</div></div>
-    <div class="metric"><div class="metric-label">Avg margin</div><div class="metric-value" id="m-margin">—</div><div class="metric-sub">design fee vs cost</div></div>
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="metric-label">Active projects</div>
+      <div class="metric-value" id="m-active">0</div>
+      <div class="metric-sub">in progress</div>
+    </div>
+    <div class="metric-card metric-accent">
+      <div class="metric-label">Total contracted</div>
+      <div class="metric-value" id="m-contracted">$0</div>
+      <div class="metric-sub">design fees</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Outstanding AR</div>
+      <div class="metric-value" id="m-ar">$0</div>
+      <div class="metric-sub">unpaid invoices</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Avg margin</div>
+      <div class="metric-value" id="m-margin">—</div>
+      <div class="metric-sub">fee vs actual cost</div>
+    </div>
   </div>
 
   <div class="tab-bar">
-    <button class="tab active" onclick="switchTab('projects')">Projects</button>
+    <button class="tab active" onclick="switchTab('projects');setNav(document.querySelector('.nav-item'))">Projects</button>
     <button class="tab" onclick="switchTab('financials')">Financials</button>
     <button class="tab" onclick="switchTab('ar')">Accounts receivable</button>
     <button class="tab" onclick="switchTab('pipeline')">Pipeline</button>
@@ -114,8 +182,8 @@ input:focus,select:focus{outline:none;border-color:var(--color-border-primary)}
 
   <div id="tab-projects" class="tab-content active">
     <div class="section-header">
-      <span class="section-title">Active projects</span>
-      <select id="phase-filter" onchange="renderProjects()" style="width:auto;font-size:12px;padding:5px 8px">
+      <span class="section-title">All projects</span>
+      <select class="phase-select" id="phase-filter" onchange="renderProjects()">
         <option value="">All phases</option>
         <option value="01">Phase 01 — Intake</option>
         <option value="02">Phase 02 — Design</option>
@@ -128,12 +196,12 @@ input:focus,select:focus{outline:none;border-color:var(--color-border-primary)}
       <table>
         <thead><tr>
           <th style="width:18%">Project</th>
-          <th style="width:12%">Phase</th>
-          <th style="width:13%">Design fee</th>
+          <th style="width:11%">Phase</th>
+          <th style="width:12%">Design fee</th>
           <th style="width:11%">Est. cost</th>
-          <th style="width:11%">Actual cost</th>
-          <th style="width:10%">Margin</th>
-          <th style="width:17%">Next action</th>
+          <th style="width:11%">Actual</th>
+          <th style="width:9%">Margin</th>
+          <th style="width:20%">Next action</th>
           <th style="width:8%"></th>
         </tr></thead>
         <tbody id="project-tbody"></tbody>
@@ -142,34 +210,36 @@ input:focus,select:focus{outline:none;border-color:var(--color-border-primary)}
   </div>
 
   <div id="tab-financials" class="tab-content">
-    <div class="section-header"><span class="section-title">Change order log</span>
-      <button class="btn" onclick="openModal('co')"><i class="ti ti-plus"></i> Add CO</button>
+    <div class="section-header">
+      <span class="section-title">Change orders</span>
+      <button class="btn btn-accent" onclick="openModal('co')"><i class="ti ti-plus"></i> Add CO</button>
     </div>
     <div class="table-wrap">
       <table>
         <thead><tr>
           <th style="width:20%">Project</th>
           <th style="width:35%">Description</th>
-          <th style="width:15%">Amount</th>
+          <th style="width:14%">Amount</th>
           <th style="width:15%">Requested by</th>
-          <th style="width:15%">Status</th>
+          <th style="width:16%">Status</th>
         </tr></thead>
         <tbody id="co-tbody"></tbody>
       </table>
     </div>
-    <div class="section-header"><span class="section-title">Procurement tracker</span>
-      <button class="btn" onclick="openModal('proc')"><i class="ti ti-plus"></i> Add item</button>
+    <div class="section-header">
+      <span class="section-title">Procurement</span>
+      <button class="btn btn-accent" onclick="openModal('proc')"><i class="ti ti-plus"></i> Add item</button>
     </div>
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th style="width:18%">Project</th>
-          <th style="width:22%">Item</th>
-          <th style="width:14%">Vendor</th>
+          <th style="width:16%">Project</th>
+          <th style="width:20%">Item</th>
+          <th style="width:15%">Vendor</th>
           <th style="width:11%">Budget</th>
           <th style="width:11%">Actual</th>
-          <th style="width:10%">Lead (wks)</th>
-          <th style="width:14%">Status</th>
+          <th style="width:11%">Lead (wks)</th>
+          <th style="width:16%">Status</th>
         </tr></thead>
         <tbody id="proc-tbody"></tbody>
       </table>
@@ -177,19 +247,20 @@ input:focus,select:focus{outline:none;border-color:var(--color-border-primary)}
   </div>
 
   <div id="tab-ar" class="tab-content">
-    <div class="section-header"><span class="section-title">Invoice tracker</span>
-      <button class="btn" onclick="openModal('inv')"><i class="ti ti-plus"></i> Add invoice</button>
+    <div class="section-header">
+      <span class="section-title">Invoices</span>
+      <button class="btn btn-accent" onclick="openModal('inv')"><i class="ti ti-plus"></i> Add invoice</button>
     </div>
     <div class="table-wrap">
       <table>
         <thead><tr>
           <th style="width:18%">Project</th>
-          <th style="width:14%">Invoice #</th>
+          <th style="width:13%">Invoice #</th>
           <th style="width:12%">Amount</th>
-          <th style="width:14%">Issued</th>
-          <th style="width:14%">Due</th>
+          <th style="width:13%">Issued</th>
+          <th style="width:13%">Due</th>
           <th style="width:12%">Status</th>
-          <th style="width:16%"></th>
+          <th style="width:19%"></th>
         </tr></thead>
         <tbody id="inv-tbody"></tbody>
       </table>
@@ -197,12 +268,13 @@ input:focus,select:focus{outline:none;border-color:var(--color-border-primary)}
   </div>
 
   <div id="tab-pipeline" class="tab-content">
-    <div class="section-header"><span class="section-title">Prospect pipeline</span>
-      <button class="btn" onclick="openModal('lead')"><i class="ti ti-plus"></i> Add prospect</button>
+    <div class="section-header">
+      <span class="section-title">Prospects</span>
+      <button class="btn btn-accent" onclick="openModal('lead')"><i class="ti ti-plus"></i> Add prospect</button>
     </div>
     <div id="pipeline-list"><div class="empty">No prospects yet — add your first lead.</div></div>
   </div>
-</div>
+</main>
 
 <div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
   <div class="modal" id="modal-inner"></div>
@@ -212,7 +284,6 @@ input:focus,select:focus{outline:none;border-color:var(--color-border-primary)}
 const KEY='tli_dash_v2';
 let data={projects:[],cos:[],procs:[],invoices:[],leads:[]};
 try{const s=localStorage.getItem(KEY);if(s)data=JSON.parse(s);}catch(e){}
-
 function save(){try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){}}
 
 const PHASES={
@@ -223,6 +294,7 @@ const PHASE_BADGE={'01':'b-intake','02':'b-design','03':'b-spec','04':'b-admin',
 
 function fmt(n){if(!n&&n!==0)return'—';return'$'+Number(n).toLocaleString();}
 function margin(fee,cost){if(!fee||!cost||cost==0)return'—';return Math.round((fee-cost)/fee*100)+'%';}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;');}
 
 function renderMetrics(){
   const active=data.projects.filter(p=>p.phase!=='done').length;
@@ -243,17 +315,17 @@ function renderProjects(){
   if(!list.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No projects yet — add your first one.</td></tr>';return;}
   tbody.innerHTML=list.map((p)=>{const idx=data.projects.indexOf(p);return`
     <tr>
-      <td><strong style="font-weight:500">${p.name}</strong><br><span style="font-size:11px;color:var(--color-text-secondary)">${p.address||''}</span></td>
+      <td><span style="font-weight:500;color:#e8e6e0">${p.name}</span><br><span style="font-size:11px;color:#4a4845">${p.address||''}</span></td>
       <td><span class="badge ${PHASE_BADGE[p.phase]||'b-done'}">${p.phase?'Ph '+p.phase:'Done'}</span></td>
-      <td>${fmt(p.fee)}</td>
+      <td style="color:#8fb87a;font-weight:500">${fmt(p.fee)}</td>
       <td>${fmt(p.est)}</td>
       <td>${fmt(p.actual)}</td>
       <td>${margin(p.fee,p.actual)}</td>
-      <td style="font-size:12px;color:var(--color-text-secondary)">${p.next||'—'}</td>
-      <td style="display:flex;gap:4px">
-        <button class="delete-btn" onclick="editProject(${idx})" aria-label="Edit"><i class="ti ti-edit"></i></button>
-        <button class="delete-btn" onclick="deleteItem('projects',${idx})" aria-label="Delete"><i class="ti ti-trash"></i></button>
-      </td>
+      <td style="font-size:12px;color:#6b6860">${p.next||'—'}</td>
+      <td><span style="display:flex;gap:2px">
+        <button class="icon-btn edit" onclick="editProject(${idx})" aria-label="Edit"><i class="ti ti-edit"></i></button>
+        <button class="icon-btn del" onclick="deleteItem('projects',${idx})" aria-label="Delete"><i class="ti ti-trash"></i></button>
+      </span></td>
     </tr>`;}).join('');
 }
 
@@ -262,8 +334,9 @@ function renderCOs(){
   if(!data.cos.length){tbody.innerHTML='<tr><td colspan="5" class="empty">No change orders logged.</td></tr>';return;}
   tbody.innerHTML=data.cos.map((c)=>`
     <tr>
-      <td>${c.project}</td><td>${c.desc}</td><td>${fmt(c.amount)}</td><td>${c.by}</td>
-      <td><span class="badge ${c.status==='approved'?'b-close':c.status==='rejected'?'b-done':'b-spec'}">${c.status}</span></td>
+      <td style="color:#e8e6e0">${c.project}</td><td style="color:#9b9890">${c.desc}</td>
+      <td style="color:#8fb87a;font-weight:500">${fmt(c.amount)}</td><td>${c.by}</td>
+      <td><span class="badge b-${c.status}">${c.status}</span></td>
     </tr>`).join('');
 }
 
@@ -272,8 +345,8 @@ function renderProcs(){
   if(!data.procs.length){tbody.innerHTML='<tr><td colspan="7" class="empty">No procurement items.</td></tr>';return;}
   tbody.innerHTML=data.procs.map((p)=>`
     <tr>
-      <td>${p.project}</td><td>${p.item}</td><td>${p.vendor}</td>
-      <td>${fmt(p.budget)}</td><td>${fmt(p.actual)}</td><td>${p.lead||'—'}</td>
+      <td style="color:#e8e6e0">${p.project}</td><td>${p.item}</td><td style="color:#6b6860">${p.vendor}</td>
+      <td>${fmt(p.budget)}</td><td style="color:#8fb87a">${fmt(p.actual)}</td><td>${p.lead||'—'}</td>
       <td><span class="badge ${p.status==='ordered'?'b-design':p.status==='on-site'?'b-close':'b-intake'}">${p.status}</span></td>
     </tr>`).join('');
 }
@@ -285,14 +358,18 @@ function renderInvoices(){
   tbody.innerHTML=data.invoices.map((inv,i)=>{
     const due=new Date(inv.due);
     const overdue=inv.status!=='paid'&&due<today;
+    const badgeCls=inv.status==='paid'?'b-paid':overdue?'b-overdue':'b-unpaid';
+    const badgeLabel=inv.status==='paid'?'paid':overdue?'overdue':'unpaid';
     return`<tr>
-      <td>${inv.project}</td><td>${inv.num}</td><td>${fmt(inv.amount)}</td>
-      <td style="font-size:12px">${inv.issued}</td>
-      <td style="font-size:12px" class="${overdue?'overdue':''}">${inv.due}${overdue?' ⚠':''}</td>
-      <td><span class="badge ${inv.status==='paid'?'b-close':overdue?'b-done':'b-spec'}">${inv.status}</span></td>
-      <td style="display:flex;gap:4px;align-items:center">
-        ${inv.status!=='paid'?`<button class="btn" style="font-size:11px;padding:3px 8px" onclick="markPaid(${i})">Mark paid</button>`:''}
-        <button class="delete-btn" onclick="deleteItem('invoices',${i})" aria-label="Remove"><i class="ti ti-trash"></i></button>
+      <td style="color:#e8e6e0">${inv.project}</td>
+      <td style="color:#6b6860;font-size:12px">${inv.num}</td>
+      <td style="color:#8fb87a;font-weight:500">${fmt(inv.amount)}</td>
+      <td style="font-size:12px;color:#6b6860">${inv.issued}</td>
+      <td style="font-size:12px;color:${overdue?'#c05050':'#6b6860'}">${inv.due}</td>
+      <td><span class="badge ${badgeCls}">${badgeLabel}</span></td>
+      <td style="display:flex;gap:6px;align-items:center">
+        ${inv.status!=='paid'?`<button class="pay-btn" onclick="markPaid(${i})">Mark paid</button>`:''}
+        <button class="icon-btn del" onclick="deleteItem('invoices',${i})" aria-label="Remove"><i class="ti ti-trash"></i></button>
       </td>
     </tr>`;}).join('');
 }
@@ -304,37 +381,64 @@ function renderPipeline(){
     const prog=Math.min(100,Math.round(parseFloat(l.prob)||0));
     return`<div class="pipeline-card">
       <div style="display:flex;justify-content:space-between;align-items:start">
-        <div><div class="pc-name">${l.name}</div><div class="pc-meta">${l.type||''} ${l.fee?'· '+fmt(l.fee)+' est.':''}</div></div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:12px;color:var(--color-text-secondary)">${l.prob||0}% likely</span>
-          <button class="delete-btn" onclick="deleteItem('leads',${i})" aria-label="Remove"><i class="ti ti-trash"></i></button>
+        <div>
+          <div class="pc-name">${l.name}</div>
+          <div class="pc-meta">${l.type||''} ${l.fee?'&middot; '+fmt(l.fee)+' est.':''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:12px;color:#6b6860">${l.prob||0}% likely</span>
+          <button class="icon-btn del" onclick="deleteItem('leads',${i})" aria-label="Remove"><i class="ti ti-trash"></i></button>
         </div>
       </div>
       <div class="progress-bar"><div class="progress-fill" style="width:${prog}%"></div></div>
-      ${l.notes?`<div style="font-size:11px;color:var(--color-text-secondary);margin-top:6px">${l.notes}</div>`:''}
+      ${l.notes?`<div style="font-size:11px;color:#5a5855;margin-top:8px">${l.notes}</div>`:''}
     </div>`;}).join('');
 }
 
 function renderAll(){renderMetrics();renderProjects();renderCOs();renderProcs();renderInvoices();renderPipeline();}
 
+const PAGE_META={
+  projects:{title:'Projects',sub:'Active project tracker & financials',btn:'Add project',modal:'add'},
+  financials:{title:'Financials',sub:'Change orders & procurement tracker',btn:'Add CO',modal:'co'},
+  ar:{title:'Accounts receivable',sub:'Invoice tracker & payment status',btn:'Add invoice',modal:'inv'},
+  pipeline:{title:'Pipeline',sub:'Prospect tracking & business development',btn:'Add prospect',modal:'lead'}
+};
+
 function switchTab(id){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-  document.querySelector(`[onclick="switchTab('${id}')"]`).classList.add('active');
+  const tabs=document.querySelectorAll('.tab');
+  const ids=['projects','financials','ar','pipeline'];
+  tabs[ids.indexOf(id)]?.classList.add('active');
   document.getElementById('tab-'+id).classList.add('active');
+  const meta=PAGE_META[id];
+  if(meta){
+    document.getElementById('page-title').textContent=meta.title;
+    document.getElementById('page-sub').textContent=meta.sub;
+    const addBtn=document.getElementById('add-btn');
+    addBtn.innerHTML='<i class="ti ti-plus"></i> '+meta.btn;
+    addBtn.onclick=()=>openModal(meta.modal);
+  }
+}
+
+function setNav(el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
 }
 
 function projectOptions(){return data.projects.length?data.projects.map(p=>`<option>${p.name}</option>`).join(''):'<option>No projects yet</option>';}
+
+const phaseOptsHtml=Object.entries(PHASES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
 
 function openModal(type){
   const bg=document.getElementById('modal-bg');
   const inner=document.getElementById('modal-inner');
   if(type==='add'){
-    inner.innerHTML=`<h3>Add project</h3>
+    inner.innerHTML=`<h3>New project</h3>
     <div class="form-grid">
       <div><label>Project name</label><input id="f-name" placeholder="Smith Residence"></div>
       <div><label>Address</label><input id="f-addr" placeholder="123 Elm St, Beverly Hills"></div>
-      <div><label>Phase</label><select id="f-phase">${Object.entries(PHASES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div>
+      <div><label>Phase</label><select id="f-phase">${phaseOptsHtml}</select></div>
       <div><label>Design fee ($)</label><input id="f-fee" type="number" placeholder="0"></div>
       <div><label>Est. project cost ($)</label><input id="f-est" type="number" placeholder="0"></div>
       <div><label>Actual cost to date ($)</label><input id="f-actual" type="number" placeholder="0"></div>
@@ -342,10 +446,10 @@ function openModal(type){
     <div class="form-grid full"><div><label>Next action needed</label><input id="f-next" placeholder="e.g. Client approval on tile by Friday"></div></div>
     <div class="form-actions">
       <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveProject()">Save project</button>
+      <button class="btn btn-accent" onclick="saveProject()">Save project</button>
     </div>`;
   } else if(type==='co'){
-    inner.innerHTML=`<h3>Add change order</h3>
+    inner.innerHTML=`<h3>New change order</h3>
     <div class="form-grid">
       <div><label>Project</label><select id="f-proj">${projectOptions()}</select></div>
       <div><label>Amount ($)</label><input id="f-amount" type="number"></div>
@@ -357,10 +461,10 @@ function openModal(type){
     </div>
     <div class="form-actions">
       <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveCO()">Save</button>
+      <button class="btn btn-accent" onclick="saveCO()">Save</button>
     </div>`;
   } else if(type==='proc'){
-    inner.innerHTML=`<h3>Add procurement item</h3>
+    inner.innerHTML=`<h3>New procurement item</h3>
     <div class="form-grid">
       <div><label>Project</label><select id="f-proj">${projectOptions()}</select></div>
       <div><label>Item</label><input id="f-item" placeholder="Carrara marble tile"></div>
@@ -372,11 +476,11 @@ function openModal(type){
     </div>
     <div class="form-actions">
       <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveProc()">Save</button>
+      <button class="btn btn-accent" onclick="saveProc()">Save</button>
     </div>`;
   } else if(type==='inv'){
     const today=new Date().toISOString().split('T')[0];
-    inner.innerHTML=`<h3>Add invoice</h3>
+    inner.innerHTML=`<h3>New invoice</h3>
     <div class="form-grid">
       <div><label>Project</label><select id="f-proj">${projectOptions()}</select></div>
       <div><label>Invoice #</label><input id="f-num" placeholder="INV-001"></div>
@@ -387,10 +491,10 @@ function openModal(type){
     </div>
     <div class="form-actions">
       <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveInv()">Save</button>
+      <button class="btn btn-accent" onclick="saveInv()">Save</button>
     </div>`;
   } else if(type==='lead'){
-    inner.innerHTML=`<h3>Add prospect</h3>
+    inner.innerHTML=`<h3>New prospect</h3>
     <div class="form-grid">
       <div><label>Name / project</label><input id="f-name" placeholder="Jones Residence"></div>
       <div><label>Project type</label><input id="f-type" placeholder="Ground-up build, renovation..."></div>
@@ -400,7 +504,7 @@ function openModal(type){
     <div class="form-grid full"><div><label>Notes</label><input id="f-notes" placeholder="Referral from Smith project, meeting set for July"></div></div>
     <div class="form-actions">
       <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveLead()">Save</button>
+      <button class="btn btn-accent" onclick="saveLead()">Save</button>
     </div>`;
   }
   bg.classList.add('open');
@@ -409,7 +513,6 @@ function openModal(type){
 function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
 function g(id){return document.getElementById(id)?.value;}
 
-function escHtml(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;");}
 function editProject(i){
   const p=data.projects[i];
   const phaseOpts=Object.entries(PHASES).map(([k,v])=>'<option value="'+k+'"'+(p.phase===k?' selected':'')+'>'+v+'</option>').join('');
@@ -427,10 +530,11 @@ function editProject(i){
     +'<div class="form-grid full"><div><label>Next action needed</label><input id="f-next" value="'+escHtml(p.next||'')+'"></div></div>'
     +'<div class="form-actions">'
     +'<button class="btn" onclick="closeModal()">Cancel</button>'
-    +'<button class="btn btn-primary" onclick="saveProject('+i+')">Save changes</button>'
+    +'<button class="btn btn-accent" onclick="saveProject('+i+')">Save changes</button>'
     +'</div>';
   bg.classList.add('open');
 }
+
 function saveProject(idx){
   if(!g('f-name'))return;
   const proj={name:g('f-name'),address:g('f-addr'),phase:g('f-phase'),fee:g('f-fee'),est:g('f-est'),actual:g('f-actual'),next:g('f-next')};
@@ -460,7 +564,7 @@ function deleteItem(type,i){if(confirm('Delete this entry?')){data[type].splice(
 function exportCSV(){
   const rows=[['Project','Phase','Design Fee','Est Cost','Actual Cost','Margin %','Next Action']];
   data.projects.forEach(p=>rows.push([p.name,PHASES[p.phase]||'',p.fee||'',p.est||'',p.actual||'',p.fee&&p.actual?Math.round((p.fee-p.actual)/p.fee*100):'',p.next||'']));
-  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
   a.download='TLI_projects.csv';a.click();
