@@ -241,7 +241,7 @@ function renderProjects(){
   const tbody=document.getElementById('project-tbody');
   const list=data.projects.filter(p=>!filter||p.phase===filter);
   if(!list.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No projects yet — add your first one.</td></tr>';return;}
-  tbody.innerHTML=list.map((p)=>`
+  tbody.innerHTML=list.map((p)=>{const idx=data.projects.indexOf(p);return`
     <tr>
       <td><strong style="font-weight:500">${p.name}</strong><br><span style="font-size:11px;color:var(--color-text-secondary)">${p.address||''}</span></td>
       <td><span class="badge ${PHASE_BADGE[p.phase]||'b-done'}">${p.phase?'Ph '+p.phase:'Done'}</span></td>
@@ -250,8 +250,11 @@ function renderProjects(){
       <td>${fmt(p.actual)}</td>
       <td>${margin(p.fee,p.actual)}</td>
       <td style="font-size:12px;color:var(--color-text-secondary)">${p.next||'—'}</td>
-      <td><button class="delete-btn" onclick="deleteItem('projects',${data.projects.indexOf(p)})" aria-label="Delete"><i class="ti ti-trash"></i></button></td>
-    </tr>`).join('');
+      <td style="display:flex;gap:4px">
+        <button class="delete-btn" onclick="editProject(${idx})" aria-label="Edit"><i class="ti ti-edit"></i></button>
+        <button class="delete-btn" onclick="deleteItem('projects',${idx})" aria-label="Delete"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;}).join('');
 }
 
 function renderCOs(){
@@ -406,9 +409,30 @@ function openModal(type){
 function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
 function g(id){return document.getElementById(id)?.value;}
 
-function saveProject(){
+function editProject(i){
+  const p=data.projects[i];
+  const bg=document.getElementById('modal-bg');
+  const inner=document.getElementById('modal-inner');
+  inner.innerHTML=`<h3>Edit project</h3>
+  <div class="form-grid">
+    <div><label>Project name</label><input id="f-name" value="${p.name||''}"></div>
+    <div><label>Address</label><input id="f-addr" value="${p.address||''}"></div>
+    <div><label>Phase</label><select id="f-phase">${Object.entries(PHASES).map(([k,v])=>`<option value="${k}"${p.phase===k?' selected':''}>` +v+ `</option>`).join('')}</select></div>
+    <div><label>Design fee ($)</label><input id="f-fee" type="number" value="${p.fee||''}"></div>
+    <div><label>Est. project cost ($)</label><input id="f-est" type="number" value="${p.est||''}"></div>
+    <div><label>Actual cost to date ($)</label><input id="f-actual" type="number" value="${p.actual||''}"></div>
+  </div>
+  <div class="form-grid full"><div><label>Next action needed</label><input id="f-next" value="${p.next||''}"></div></div>
+  <div class="form-actions">
+    <button class="btn" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveProject(` +i+ `)">Save changes</button>
+  </div>`;
+  bg.classList.add('open');
+}
+function saveProject(idx){
   if(!g('f-name'))return;
-  data.projects.push({name:g('f-name'),address:g('f-addr'),phase:g('f-phase'),fee:g('f-fee'),est:g('f-est'),actual:g('f-actual'),next:g('f-next')});
+  const proj={name:g('f-name'),address:g('f-addr'),phase:g('f-phase'),fee:g('f-fee'),est:g('f-est'),actual:g('f-actual'),next:g('f-next')};
+  if(idx!==undefined){data.projects[idx]=proj;}else{data.projects.push(proj);}
   save();renderAll();closeModal();
 }
 function saveCO(){
