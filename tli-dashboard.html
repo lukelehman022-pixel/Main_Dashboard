@@ -409,24 +409,26 @@ function openModal(type){
 function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
 function g(id){return document.getElementById(id)?.value;}
 
+function escHtml(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;");}
 function editProject(i){
   const p=data.projects[i];
+  const phaseOpts=Object.entries(PHASES).map(([k,v])=>'<option value="'+k+'"'+(p.phase===k?' selected':'')+'>'+v+'</option>').join('');
   const bg=document.getElementById('modal-bg');
   const inner=document.getElementById('modal-inner');
-  inner.innerHTML=`<h3>Edit project</h3>
-  <div class="form-grid">
-    <div><label>Project name</label><input id="f-name" value="${p.name||''}"></div>
-    <div><label>Address</label><input id="f-addr" value="${p.address||''}"></div>
-    <div><label>Phase</label><select id="f-phase">${Object.entries(PHASES).map(([k,v])=>`<option value="${k}"${p.phase===k?' selected':''}>` +v+ `</option>`).join('')}</select></div>
-    <div><label>Design fee ($)</label><input id="f-fee" type="number" value="${p.fee||''}"></div>
-    <div><label>Est. project cost ($)</label><input id="f-est" type="number" value="${p.est||''}"></div>
-    <div><label>Actual cost to date ($)</label><input id="f-actual" type="number" value="${p.actual||''}"></div>
-  </div>
-  <div class="form-grid full"><div><label>Next action needed</label><input id="f-next" value="${p.next||''}"></div></div>
-  <div class="form-actions">
-    <button class="btn" onclick="closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="saveProject(` +i+ `)">Save changes</button>
-  </div>`;
+  inner.innerHTML='<h3>Edit project</h3>'
+    +'<div class="form-grid">'
+    +'<div><label>Project name</label><input id="f-name" value="'+escHtml(p.name||'')+'"></div>'
+    +'<div><label>Address</label><input id="f-addr" value="'+escHtml(p.address||'')+'"></div>'
+    +'<div><label>Phase</label><select id="f-phase">'+phaseOpts+'</select></div>'
+    +'<div><label>Design fee ($)</label><input id="f-fee" type="number" value="'+(p.fee||'')+'"></div>'
+    +'<div><label>Est. project cost ($)</label><input id="f-est" type="number" value="'+(p.est||'')+'"></div>'
+    +'<div><label>Actual cost to date ($)</label><input id="f-actual" type="number" value="'+(p.actual||'')+'"></div>'
+    +'</div>'
+    +'<div class="form-grid full"><div><label>Next action needed</label><input id="f-next" value="'+escHtml(p.next||'')+'"></div></div>'
+    +'<div class="form-actions">'
+    +'<button class="btn" onclick="closeModal()">Cancel</button>'
+    +'<button class="btn btn-primary" onclick="saveProject('+i+')">Save changes</button>'
+    +'</div>';
   bg.classList.add('open');
 }
 function saveProject(idx){
