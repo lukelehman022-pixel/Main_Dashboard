@@ -1,1 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tracy Lehman Interiors — Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f9f9f8;color:#1a1a1a;padding:0 1.5rem 3rem}
+:root{
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#f4f4f2;
+  --color-background-tertiary:#eeede9;
+  --color-text-primary:#1a1a1a;
+  --color-text-secondary:#6b6b67;
+  --color-text-tertiary:#a0a09c;
+  --color-border-tertiary:rgba(0,0,0,0.1);
+  --color-border-secondary:rgba(0,0,0,0.2);
+  --color-border-primary:rgba(0,0,0,0.3);
+  --border-radius-md:8px;
+  --border-radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){
+  body{background:#1a1a1a;color:#f0f0ee}
+  :root{
+    --color-background-primary:#242422;
+    --color-background-secondary:#2e2e2c;
+    --color-background-tertiary:#383836;
+    --color-text-primary:#f0f0ee;
+    --color-text-secondary:#a0a09c;
+    --color-text-tertiary:#6b6b67;
+    --color-border-tertiary:rgba(255,255,255,0.1);
+    --color-border-secondary:rgba(255,255,255,0.2);
+    --color-border-primary:rgba(255,255,255,0.3);
+  }
+}
+.dash{max-width:960px;margin:0 auto;padding:1.5rem 0}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.logo{font-size:13px;font-weight:500;color:var(--color-text-secondary);letter-spacing:.08em;text-transform:uppercase}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+@media(max-width:600px){.metric-grid{grid-template-columns:repeat(2,1fr)}}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.9rem 1rem}
+.metric-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:6px}
+.metric-value{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.metric-sub{font-size:11px;color:var(--color-text-tertiary);margin-top:3px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.section-title{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.btn{background:transparent;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 12px;font-size:12px;color:var(--color-text-primary);cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:var(--color-background-secondary)}
+.btn-primary{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary)}
+.btn-primary:hover{opacity:.85}
+.table-wrap{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;margin-bottom:1.5rem}
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+th{background:var(--color-background-secondary);padding:9px 12px;text-align:left;font-weight:500;font-size:11px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);letter-spacing:.04em;text-transform:uppercase}
+td{padding:10px 12px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--color-background-secondary)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.b-intake{background:#E1F5EE;color:#0F6E56}
+.b-design{background:#E6F1FB;color:#185FA5}
+.b-spec{background:#FAEEDA;color:#854F0B}
+.b-admin{background:#EEEDFE;color:#534AB7}
+.b-close{background:#EAF3DE;color:#3B6D11}
+.b-done{background:#F1EFE8;color:#5F5E5A}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:1.5rem;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:16px;font-weight:500;margin-bottom:1rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.5rem}
+.form-grid.full{grid-template-columns:1fr}
+label{font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:4px}
+input,select{width:100%;padding:7px 10px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary)}
+input:focus,select:focus{outline:none;border-color:var(--color-border-primary)}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem}
+.tab-bar{display:flex;gap:0;margin-bottom:1.5rem;border-bottom:0.5px solid var(--color-border-tertiary)}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none}
+.tab.active{color:var(--color-text-primary);font-weight:500;border-bottom-color:var(--color-text-primary)}
+.tab-content{display:none}.tab-content.active{display:block}
+.overdue{color:#a32d2d}
+.pipeline-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:.9rem 1rem;margin-bottom:.5rem}
+.pc-name{font-size:13px;font-weight:500}
+.pc-meta{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
+.progress-bar{height:4px;background:var(--color-border-tertiary);border-radius:2px;margin-top:8px}
+.progress-fill{height:4px;border-radius:2px;background:#1D9E75}
+.empty{text-align:center;padding:2rem;color:var(--color-text-tertiary);font-size:13px}
+.delete-btn{background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px 4px;font-size:14px}
+.delete-btn:hover{color:#a32d2d}
+</style>
+</head>
+<body>
+<div class="dash">
+  <div class="top-bar">
+    <div class="logo">Tracy Lehman Interiors — Project Dashboard</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+      <button class="btn btn-primary" onclick="openModal('add')"><i class="ti ti-plus"></i> Add project</button>
+    </div>
+  </div>
 
+  <div class="metric-grid">
+    <div class="metric"><div class="metric-label">Active projects</div><div class="metric-value" id="m-active">0</div><div class="metric-sub">in progress</div></div>
+    <div class="metric"><div class="metric-label">Total contracted</div><div class="metric-value" id="m-contracted">$0</div><div class="metric-sub">across all projects</div></div>
+    <div class="metric"><div class="metric-label">Outstanding AR</div><div class="metric-value" id="m-ar">$0</div><div class="metric-sub">unpaid invoices</div></div>
+    <div class="metric"><div class="metric-label">Avg margin</div><div class="metric-value" id="m-margin">—</div><div class="metric-sub">design fee vs cost</div></div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('projects')">Projects</button>
+    <button class="tab" onclick="switchTab('financials')">Financials</button>
+    <button class="tab" onclick="switchTab('ar')">Accounts receivable</button>
+    <button class="tab" onclick="switchTab('pipeline')">Pipeline</button>
+  </div>
+
+  <div id="tab-projects" class="tab-content active">
+    <div class="section-header">
+      <span class="section-title">Active projects</span>
+      <select id="phase-filter" onchange="renderProjects()" style="width:auto;font-size:12px;padding:5px 8px">
+        <option value="">All phases</option>
+        <option value="01">Phase 01 — Intake</option>
+        <option value="02">Phase 02 — Design</option>
+        <option value="03">Phase 03 — Specs</option>
+        <option value="04">Phase 04 — Admin</option>
+        <option value="05">Phase 05 — Close-out</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:18%">Project</th>
+          <th style="width:12%">Phase</th>
+          <th style="width:13%">Design fee</th>
+          <th style="width:11%">Est. cost</th>
+          <th style="width:11%">Actual cost</th>
+          <th style="width:10%">Margin</th>
+          <th style="width:17%">Next action</th>
+          <th style="width:8%"></th>
+        </tr></thead>
+        <tbody id="project-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab-financials" class="tab-content">
+    <div class="section-header"><span class="section-title">Change order log</span>
+      <button class="btn" onclick="openModal('co')"><i class="ti ti-plus"></i> Add CO</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:20%">Project</th>
+          <th style="width:35%">Description</th>
+          <th style="width:15%">Amount</th>
+          <th style="width:15%">Requested by</th>
+          <th style="width:15%">Status</th>
+        </tr></thead>
+        <tbody id="co-tbody"></tbody>
+      </table>
+    </div>
+    <div class="section-header"><span class="section-title">Procurement tracker</span>
+      <button class="btn" onclick="openModal('proc')"><i class="ti ti-plus"></i> Add item</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:18%">Project</th>
+          <th style="width:22%">Item</th>
+          <th style="width:14%">Vendor</th>
+          <th style="width:11%">Budget</th>
+          <th style="width:11%">Actual</th>
+          <th style="width:10%">Lead (wks)</th>
+          <th style="width:14%">Status</th>
+        </tr></thead>
+        <tbody id="proc-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab-ar" class="tab-content">
+    <div class="section-header"><span class="section-title">Invoice tracker</span>
+      <button class="btn" onclick="openModal('inv')"><i class="ti ti-plus"></i> Add invoice</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="width:18%">Project</th>
+          <th style="width:14%">Invoice #</th>
+          <th style="width:12%">Amount</th>
+          <th style="width:14%">Issued</th>
+          <th style="width:14%">Due</th>
+          <th style="width:12%">Status</th>
+          <th style="width:16%"></th>
+        </tr></thead>
+        <tbody id="inv-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab-pipeline" class="tab-content">
+    <div class="section-header"><span class="section-title">Prospect pipeline</span>
+      <button class="btn" onclick="openModal('lead')"><i class="ti ti-plus"></i> Add prospect</button>
+    </div>
+    <div id="pipeline-list"><div class="empty">No prospects yet — add your first lead.</div></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-inner"></div>
+</div>
+
+<script>
+const KEY='tli_dash_v2';
+let data={projects:[],cos:[],procs:[],invoices:[],leads:[]};
+try{const s=localStorage.getItem(KEY);if(s)data=JSON.parse(s);}catch(e){}
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){}}
+
+const PHASES={
+  '01':'Phase 01 — Intake','02':'Phase 02 — Design',
+  '03':'Phase 03 — Specs','04':'Phase 04 — Admin','05':'Phase 05 — Close-out'
+};
+const PHASE_BADGE={'01':'b-intake','02':'b-design','03':'b-spec','04':'b-admin','05':'b-close'};
+
+function fmt(n){if(!n&&n!==0)return'—';return'$'+Number(n).toLocaleString();}
+function margin(fee,cost){if(!fee||!cost||cost==0)return'—';return Math.round((fee-cost)/fee*100)+'%';}
+
+function renderMetrics(){
+  const active=data.projects.filter(p=>p.phase!=='done').length;
+  const contracted=data.projects.reduce((a,p)=>a+(parseFloat(p.fee)||0),0);
+  const ar=data.invoices.filter(i=>i.status!=='paid').reduce((a,i)=>a+(parseFloat(i.amount)||0),0);
+  const margins=data.projects.filter(p=>p.fee&&p.actual).map(p=>(p.fee-p.actual)/p.fee*100);
+  const avgM=margins.length?Math.round(margins.reduce((a,b)=>a+b,0)/margins.length)+'%':'—';
+  document.getElementById('m-active').textContent=active;
+  document.getElementById('m-contracted').textContent=fmt(contracted);
+  document.getElementById('m-ar').textContent=fmt(ar);
+  document.getElementById('m-margin').textContent=avgM;
+}
+
+function renderProjects(){
+  const filter=document.getElementById('phase-filter').value;
+  const tbody=document.getElementById('project-tbody');
+  const list=data.projects.filter(p=>!filter||p.phase===filter);
+  if(!list.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No projects yet — add your first one.</td></tr>';return;}
+  tbody.innerHTML=list.map((p)=>`
+    <tr>
+      <td><strong style="font-weight:500">${p.name}</strong><br><span style="font-size:11px;color:var(--color-text-secondary)">${p.address||''}</span></td>
+      <td><span class="badge ${PHASE_BADGE[p.phase]||'b-done'}">${p.phase?'Ph '+p.phase:'Done'}</span></td>
+      <td>${fmt(p.fee)}</td>
+      <td>${fmt(p.est)}</td>
+      <td>${fmt(p.actual)}</td>
+      <td>${margin(p.fee,p.actual)}</td>
+      <td style="font-size:12px;color:var(--color-text-secondary)">${p.next||'—'}</td>
+      <td><button class="delete-btn" onclick="deleteItem('projects',${data.projects.indexOf(p)})" aria-label="Delete"><i class="ti ti-trash"></i></button></td>
+    </tr>`).join('');
+}
+
+function renderCOs(){
+  const tbody=document.getElementById('co-tbody');
+  if(!data.cos.length){tbody.innerHTML='<tr><td colspan="5" class="empty">No change orders logged.</td></tr>';return;}
+  tbody.innerHTML=data.cos.map((c)=>`
+    <tr>
+      <td>${c.project}</td><td>${c.desc}</td><td>${fmt(c.amount)}</td><td>${c.by}</td>
+      <td><span class="badge ${c.status==='approved'?'b-close':c.status==='rejected'?'b-done':'b-spec'}">${c.status}</span></td>
+    </tr>`).join('');
+}
+
+function renderProcs(){
+  const tbody=document.getElementById('proc-tbody');
+  if(!data.procs.length){tbody.innerHTML='<tr><td colspan="7" class="empty">No procurement items.</td></tr>';return;}
+  tbody.innerHTML=data.procs.map((p)=>`
+    <tr>
+      <td>${p.project}</td><td>${p.item}</td><td>${p.vendor}</td>
+      <td>${fmt(p.budget)}</td><td>${fmt(p.actual)}</td><td>${p.lead||'—'}</td>
+      <td><span class="badge ${p.status==='ordered'?'b-design':p.status==='on-site'?'b-close':'b-intake'}">${p.status}</span></td>
+    </tr>`).join('');
+}
+
+function renderInvoices(){
+  const tbody=document.getElementById('inv-tbody');
+  if(!data.invoices.length){tbody.innerHTML='<tr><td colspan="7" class="empty">No invoices yet.</td></tr>';return;}
+  const today=new Date();
+  tbody.innerHTML=data.invoices.map((inv,i)=>{
+    const due=new Date(inv.due);
+    const overdue=inv.status!=='paid'&&due<today;
+    return`<tr>
+      <td>${inv.project}</td><td>${inv.num}</td><td>${fmt(inv.amount)}</td>
+      <td style="font-size:12px">${inv.issued}</td>
+      <td style="font-size:12px" class="${overdue?'overdue':''}">${inv.due}${overdue?' ⚠':''}</td>
+      <td><span class="badge ${inv.status==='paid'?'b-close':overdue?'b-done':'b-spec'}">${inv.status}</span></td>
+      <td style="display:flex;gap:4px;align-items:center">
+        ${inv.status!=='paid'?`<button class="btn" style="font-size:11px;padding:3px 8px" onclick="markPaid(${i})">Mark paid</button>`:''}
+        <button class="delete-btn" onclick="deleteItem('invoices',${i})" aria-label="Remove"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;}).join('');
+}
+
+function renderPipeline(){
+  const el=document.getElementById('pipeline-list');
+  if(!data.leads.length){el.innerHTML='<div class="empty">No prospects yet — add your first lead.</div>';return;}
+  el.innerHTML=data.leads.map((l,i)=>{
+    const prog=Math.min(100,Math.round(parseFloat(l.prob)||0));
+    return`<div class="pipeline-card">
+      <div style="display:flex;justify-content:space-between;align-items:start">
+        <div><div class="pc-name">${l.name}</div><div class="pc-meta">${l.type||''} ${l.fee?'· '+fmt(l.fee)+' est.':''}</div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:var(--color-text-secondary)">${l.prob||0}% likely</span>
+          <button class="delete-btn" onclick="deleteItem('leads',${i})" aria-label="Remove"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${prog}%"></div></div>
+      ${l.notes?`<div style="font-size:11px;color:var(--color-text-secondary);margin-top:6px">${l.notes}</div>`:''}
+    </div>`;}).join('');
+}
+
+function renderAll(){renderMetrics();renderProjects();renderCOs();renderProcs();renderInvoices();renderPipeline();}
+
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${id}')"]`).classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+function projectOptions(){return data.projects.length?data.projects.map(p=>`<option>${p.name}</option>`).join(''):'<option>No projects yet</option>';}
+
+function openModal(type){
+  const bg=document.getElementById('modal-bg');
+  const inner=document.getElementById('modal-inner');
+  if(type==='add'){
+    inner.innerHTML=`<h3>Add project</h3>
+    <div class="form-grid">
+      <div><label>Project name</label><input id="f-name" placeholder="Smith Residence"></div>
+      <div><label>Address</label><input id="f-addr" placeholder="123 Elm St, Beverly Hills"></div>
+      <div><label>Phase</label><select id="f-phase">${Object.entries(PHASES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div>
+      <div><label>Design fee ($)</label><input id="f-fee" type="number" placeholder="0"></div>
+      <div><label>Est. project cost ($)</label><input id="f-est" type="number" placeholder="0"></div>
+      <div><label>Actual cost to date ($)</label><input id="f-actual" type="number" placeholder="0"></div>
+    </div>
+    <div class="form-grid full"><div><label>Next action needed</label><input id="f-next" placeholder="e.g. Client approval on tile by Friday"></div></div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProject()">Save project</button>
+    </div>`;
+  } else if(type==='co'){
+    inner.innerHTML=`<h3>Add change order</h3>
+    <div class="form-grid">
+      <div><label>Project</label><select id="f-proj">${projectOptions()}</select></div>
+      <div><label>Amount ($)</label><input id="f-amount" type="number"></div>
+    </div>
+    <div class="form-grid full"><div><label>Description</label><input id="f-desc" placeholder="Client requested tile upgrade in primary bath"></div></div>
+    <div class="form-grid">
+      <div><label>Requested by</label><select id="f-by"><option>Client</option><option>GC</option><option>Designer</option></select></div>
+      <div><label>Status</label><select id="f-status"><option>pending</option><option>approved</option><option>rejected</option></select></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCO()">Save</button>
+    </div>`;
+  } else if(type==='proc'){
+    inner.innerHTML=`<h3>Add procurement item</h3>
+    <div class="form-grid">
+      <div><label>Project</label><select id="f-proj">${projectOptions()}</select></div>
+      <div><label>Item</label><input id="f-item" placeholder="Carrara marble tile"></div>
+      <div><label>Vendor</label><input id="f-vendor"></div>
+      <div><label>Lead time (weeks)</label><input id="f-lead" type="number"></div>
+      <div><label>Budget ($)</label><input id="f-budget" type="number"></div>
+      <div><label>Actual cost ($)</label><input id="f-actual" type="number"></div>
+      <div><label>Status</label><select id="f-status"><option>pending</option><option>ordered</option><option>on-site</option></select></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProc()">Save</button>
+    </div>`;
+  } else if(type==='inv'){
+    const today=new Date().toISOString().split('T')[0];
+    inner.innerHTML=`<h3>Add invoice</h3>
+    <div class="form-grid">
+      <div><label>Project</label><select id="f-proj">${projectOptions()}</select></div>
+      <div><label>Invoice #</label><input id="f-num" placeholder="INV-001"></div>
+      <div><label>Amount ($)</label><input id="f-amount" type="number"></div>
+      <div><label>Status</label><select id="f-status"><option>unpaid</option><option>paid</option></select></div>
+      <div><label>Date issued</label><input id="f-issued" type="date" value="${today}"></div>
+      <div><label>Due date</label><input id="f-due" type="date"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveInv()">Save</button>
+    </div>`;
+  } else if(type==='lead'){
+    inner.innerHTML=`<h3>Add prospect</h3>
+    <div class="form-grid">
+      <div><label>Name / project</label><input id="f-name" placeholder="Jones Residence"></div>
+      <div><label>Project type</label><input id="f-type" placeholder="Ground-up build, renovation..."></div>
+      <div><label>Est. fee ($)</label><input id="f-fee" type="number"></div>
+      <div><label>Likelihood (%)</label><input id="f-prob" type="number" min="0" max="100" placeholder="60"></div>
+    </div>
+    <div class="form-grid full"><div><label>Notes</label><input id="f-notes" placeholder="Referral from Smith project, meeting set for July"></div></div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLead()">Save</button>
+    </div>`;
+  }
+  bg.classList.add('open');
+}
+
+function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
+function g(id){return document.getElementById(id)?.value;}
+
+function saveProject(){
+  if(!g('f-name'))return;
+  data.projects.push({name:g('f-name'),address:g('f-addr'),phase:g('f-phase'),fee:g('f-fee'),est:g('f-est'),actual:g('f-actual'),next:g('f-next')});
+  save();renderAll();closeModal();
+}
+function saveCO(){
+  data.cos.push({project:g('f-proj'),desc:g('f-desc'),amount:g('f-amount'),by:g('f-by'),status:g('f-status')});
+  save();renderAll();closeModal();
+}
+function saveProc(){
+  data.procs.push({project:g('f-proj'),item:g('f-item'),vendor:g('f-vendor'),lead:g('f-lead'),budget:g('f-budget'),actual:g('f-actual'),status:g('f-status')});
+  save();renderAll();closeModal();
+}
+function saveInv(){
+  data.invoices.push({project:g('f-proj'),num:g('f-num'),amount:g('f-amount'),issued:g('f-issued'),due:g('f-due'),status:g('f-status')});
+  save();renderAll();closeModal();
+}
+function saveLead(){
+  if(!g('f-name'))return;
+  data.leads.push({name:g('f-name'),type:g('f-type'),fee:g('f-fee'),prob:g('f-prob'),notes:g('f-notes')});
+  save();renderAll();closeModal();
+}
+function markPaid(i){data.invoices[i].status='paid';save();renderAll();}
+function deleteItem(type,i){if(confirm('Delete this entry?')){data[type].splice(i,1);save();renderAll();}}
+
+function exportCSV(){
+  const rows=[['Project','Phase','Design Fee','Est Cost','Actual Cost','Margin %','Next Action']];
+  data.projects.forEach(p=>rows.push([p.name,PHASES[p.phase]||'',p.fee||'',p.est||'',p.actual||'',p.fee&&p.actual?Math.round((p.fee-p.actual)/p.fee*100):'',p.next||'']));
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='TLI_projects.csv';a.click();
+}
+
+renderAll();
+</script>
+</body>
+</html>
